@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<link rel="stylesheet" href="css/wordle.css">
+<header>
+    <meta charset="UTF-8">
+    <h1>
+        Japanese Worldle
+    </h1>
+
+    <p>
+        Work in progress. Currently developing japanese worldle for learning purposes.
+        Pick a letter in to reveal, and guess what 4 letter the word is. If the letter is in the word,
+        and the the postion of the letter is corret, the box will turn green. If letter is in the word,
+        but the position is not right, the box will turn yellow.
+    </p>
+</header>
+
+<!-- Wordle build goes down here. -->
+
+<body>
+
+    <div class="wordlebox">
+
+        <!-- First ROW -->
+        <input class="worrow" id="fifif" maxlength="2" oninput=moveToNext(fifif,fifif,fisef)>
+        <input class="worrow" id="fisef" maxlength="2" oninput=moveToNext(fifif,fisef,fithf)>
+        <input class="worrow" id="fithf" maxlength="2" oninput=moveToNext(fisef,fithf,fifof)>
+        <input class="worrow" id="fifof" maxlength="2" oninput=moveToNext(fithf,fifof,fifof)>
+
+        <!-- Second ROW -->
+        <input class="worrow" id="sefif" maxlength="2" oninput=moveToNext(sefif,sefif,sesef)>
+        <input class="worrow" id="sesef" maxlength="2" oninput=moveToNext(sefif,sesef,sethf)>
+        <input class="worrow" id="sethf" maxlength="2" oninput=moveToNext(sesef,sethf,sefof)>
+        <input class="worrow" id="sefof" maxlength="2" oninput=moveToNext(sethf,sefof,sefof)>
+
+        <!-- Third ROW -->
+        <input class="worrow" id="thfif" maxlength="2" oninput=moveToNext(thfif,thfif,thsef)>
+        <input class="worrow" id="thsef" maxlength="2" oninput=moveToNext(thfif,thsef,ththf)>
+        <input class="worrow" id="ththf" maxlength="2" oninput=moveToNext(thsef,ththf,thfof)>
+        <input class="worrow" id="thfof" maxlength="2" oninput=moveToNext(ththf,thfof,thfof)>
+
+        <!-- Fourth ROW -->
+        <input class="worrow" id="fofif" maxlength="2" oninput=moveToNext(fofif,fofif,fosef)>
+        <input class="worrow" id="fosef" maxlength="2" oninput=moveToNext(fofif,fosef,fothf)>
+        <input class="worrow" id="fothf" maxlength="2" oninput=moveToNext(fosef,fothf,fofof)>
+        <input class="worrow" id="fofof" maxlength="2" oninput=moveToNext(fothf,fofof,fofof)>
+
+        <!-- Fifth ROW -->
+        <input class="worrow" id="fvfif" maxlength="2" oninput=moveToNext(fvfif,fvfif,fvsef)>
+        <input class="worrow" id="fvsef" maxlength="2" oninput=moveToNext(fvfif,fvsef,fvthf)>
+        <input class="worrow" id="fvthf" maxlength="2" oninput=moveToNext(fvsef,fvthf,fvfof)>
+        <input class="worrow" id="fvfof" maxlength="2" oninput=moveToNext(fvthf,fvfof,fvfof)>
+
+        <!-- Sixth ROW -->
+        <input class="worrow" id="sxfif" maxlength="2" oninput=moveToNext(sxfif,sxfif,sxsef)>
+        <input class="worrow" id="sxsef" maxlength="2" oninput=moveToNext(sxfif,sxsef,sxthf)>
+        <input class="worrow" id="sxthf" maxlength="2" oninput=moveToNext(sxsef,sxthf,sxfof)>
+        <input class="worrow" id="sxfof" maxlength="2" oninput=moveToNext(sxthf,sxfof,sxfof)>
+
+
+
+    </div>
+
+    <!-- script -->
+    <script src="js/japanesewordle.js"></script>
+</body>
+
+</html>

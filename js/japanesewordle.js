@@ -1,0 +1,89 @@
+// hiragana
+var hiraganas = new Map();
+// あ行
+hiraganas.set('a', 'あ');
+hiraganas.set('i', 'い');
+hiraganas.set('u', 'う');
+hiraganas.set('e', 'え');
+hiraganas.set('o', 'お');
+// か行
+hiraganas.set('ka', 'か');
+hiraganas.set('ki', 'き');
+hiraganas.set('ku', 'く');
+hiraganas.set('ke', 'け');
+hiraganas.set('ko', 'こ');
+// さ行
+hiraganas.set('sa', 'さ');
+hiraganas.set('si', 'し');
+hiraganas.set('su', 'す');
+hiraganas.set('se', 'せ');
+hiraganas.set('so', 'そ');
+// た行
+hiraganas.set('ta', 'た');
+hiraganas.set('ti', 'ち');
+hiraganas.set('tu', 'つ');
+hiraganas.set('te', 'て');
+hiraganas.set('to', 'と');
+// な行
+hiraganas.set('na', 'な');
+hiraganas.set('ni', 'に');
+hiraganas.set('nu', 'ぬ');
+hiraganas.set('ne', 'ね');
+hiraganas.set('no', 'の');
+// は行
+hiraganas.set('ha', 'は');
+hiraganas.set('hi', 'ひ');
+hiraganas.set('hu', 'ふ');
+hiraganas.set('he', 'へ');
+hiraganas.set('ho', 'ほ');
+// ま行
+hiraganas.set('ma', 'ま');
+hiraganas.set('mi', 'み');
+hiraganas.set('mu', 'む');
+hiraganas.set('me', 'め');
+hiraganas.set('mo', 'も');
+// や行
+hiraganas.set('ya', 'や');
+hiraganas.set('yu', 'ゆ');
+hiraganas.set('yo', 'よ');
+// ら行
+hiraganas.set('ra', 'ら');
+hiraganas.set('ri', 'り');
+hiraganas.set('ru', 'る');
+hiraganas.set('re', 'れ');
+hiraganas.set('ro', 'ろ');
+// わ行
+hiraganas.set('wa', 'わ');
+hiraganas.set('wo', 'を');
+hiraganas.set('nn', 'ん');
+
+
+/**
+ * automatically moves to the next column if a japanese character is typed in
+ * @param {*} currentField the current input field we are checking on
+ * @param {*} nextField the next input field to move to
+ */
+function moveToNext(previousField, currentField, nextField) {
+
+    if (currentField.value == "") {
+        previousField.focus()
+        return;
+    }
+
+    const strr = currentField.value + "";
+    if (strr.endsWith('a') || strr.endsWith('i') || strr.endsWith('u') || strr.endsWith('e') || strr.endsWith('o') || strr.endsWith('n')) {
+        japchar = hiraganas.get(strr);
+        if (japchar != undefined) {
+            currentField.value = japchar;
+            if (nextField != currentField) {
+                nextField.value = "";
+            }
+            nextField.focus();
+        }
+    }
+}
+
+function getUserAnswer(first, second, third, fourth) {
+    return "" + first.value + second.value + third.value + fourth.value;
+}
+
