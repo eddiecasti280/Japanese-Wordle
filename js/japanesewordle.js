@@ -21,6 +21,9 @@ hiraganas.set('so', 'そ');
 // た行
 hiraganas.set('ta', 'た');
 hiraganas.set('ti', 'ち');
+hiraganas.set('chi', 'ち');
+hiraganas.set('ci', 'ち');
+hiraganas.set('tsu', 'つ');
 hiraganas.set('tu', 'つ');
 hiraganas.set('te', 'て');
 hiraganas.set('to', 'と');
@@ -34,6 +37,7 @@ hiraganas.set('no', 'の');
 hiraganas.set('ha', 'は');
 hiraganas.set('hi', 'ひ');
 hiraganas.set('hu', 'ふ');
+hiraganas.set('fu', 'ふ');
 hiraganas.set('he', 'へ');
 hiraganas.set('ho', 'ほ');
 // ま行
@@ -56,6 +60,46 @@ hiraganas.set('ro', 'ろ');
 hiraganas.set('wa', 'わ');
 hiraganas.set('wo', 'を');
 hiraganas.set('nn', 'ん');
+// が行
+hiraganas.set('ga', 'が');
+hiraganas.set('gi', 'ぎ');
+hiraganas.set('gu', 'ぐ');
+hiraganas.set('ge', 'げ');
+hiraganas.set('go', 'ご');
+// ざ行
+hiraganas.set('za', 'ざ');
+hiraganas.set('zi', 'じ');
+hiraganas.set('zu', 'ず');
+hiraganas.set('ze', 'ぜ');
+hiraganas.set('zo', 'ぞ');
+// だ行
+hiraganas.set('da', 'だ');
+hiraganas.set('di', 'ぢ');
+hiraganas.set('du', 'づ');
+hiraganas.set('de', 'で');
+hiraganas.set('do', 'ど');
+// ば行
+hiraganas.set('ba', 'ば');
+hiraganas.set('bi', 'び');
+hiraganas.set('bu', 'ぶ');
+hiraganas.set('be', 'べ');
+hiraganas.set('bo', 'ぼ');
+// ぱ行
+hiraganas.set('pa', 'ぱ');
+hiraganas.set('pi', 'ぴ');
+hiraganas.set('pu', 'ぷ');
+hiraganas.set('pe', 'ぺ');
+hiraganas.set('po', 'ぽ');
+// 小文字
+hiraganas.set('xa', 'ぁ');
+hiraganas.set('xi', 'ぃ');
+hiraganas.set('xu', 'ぅ');
+hiraganas.set('xe', 'ぇ');
+hiraganas.set('xo', 'ぉ');
+hiraganas.set('xya', 'ゃ');
+hiraganas.set('xyu', 'ゅ');
+hiraganas.set('xyo', 'ょ');
+hiraganas.set('xtu', 'っ');
 
 
 /**
@@ -63,22 +107,28 @@ hiraganas.set('nn', 'ん');
  * @param {*} currentField the current input field we are checking on
  * @param {*} nextField the next input field to move to
  */
-function moveToNext(previousField, currentField, nextField) {
-
-    if (currentField.value == "") {
-        previousField.focus()
-        return;
-    }
+function moveToNext(currentField, nextField) {
 
     const strr = currentField.value + "";
+    currentField.value =  currentField.value.trim();
+
     if (strr.endsWith('a') || strr.endsWith('i') || strr.endsWith('u') || strr.endsWith('e') || strr.endsWith('o') || strr.endsWith('n')) {
         japchar = hiraganas.get(strr);
         if (japchar != undefined) {
             currentField.value = japchar;
-            if (nextField != currentField) {
-                nextField.value = "";
-            }
             nextField.focus();
+            length = nextField.value.length;
+            nextField.setSelectionRange(length, length);
+        }
+    }
+}
+
+function onKeyDown(event, previousField, currentField) {
+    const key = event.key;
+
+    if (key === "Backspace" || key === "Delete") {
+        if (currentField.value == "") {
+            previousField.focus();
         }
     }
 }
