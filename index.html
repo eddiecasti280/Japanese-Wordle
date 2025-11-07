@@ -12,16 +12,14 @@
 <body>
     <header>
         <h1>
-            Japanese Worldle
+            JP Worldle
         </h1>
     </header>
-    <p>
-        Work in progress. Currently developing japanese worldle for learning purposes.
-        Pick a letter in to reveal, and guess what 4 letter the word is. If the letter is in the word,
-        and the the postion of the letter is corret, the box will turn green. If letter is in the word,
-        but the position is not right, the box will turn yellow. If the letter with kuten is not correct,
-        but shares the same chacter, the box will be orange. If the letter is not in the word, the box will turn gray.
+
+    <p id="loadingstatus">
+        Loading JSON files...
     </p>
+
     <div class="wordlebox">
 
         <!-- First ROW -->
@@ -85,13 +83,24 @@
             onkeydown=onKeyDown(event,sxsef,sxthf)>
         <input class="worrow" id="sxfof" maxlength="3" oninput=moveToNext(sxfof,null)
             onkeydown=onKeyDown(event,sxthf,sxfof)>
-
-
-
     </div>
 
-    <!-- script -->
-    <script src="js/japanesewordle.js"></script>
+    <div class="intsructions">
+        <h3 id="rules" style="margin-bottom: 0;">
+            Rules:
+        </h3>
+        <label for="rules" style="margin-top: 0;">
+            Work in progress. Currently developing japanese worldle for learning purposes.
+            Pick a letter in to reveal, and guess what 4 letter the word is. If the letter is in the word,
+            and the the postion of the letter is corret, the box will turn green. If letter is in the word,
+            but the position is not right, the box will turn yellow. If the letter with kuten is not correct,
+            but shares the same chacter, the box will be orange. If the letter is not in the word, the box will turn
+            gray.
+        </label>
+    </div>
 </body>
+
+<!-- script -->
+<script src="js/japanesewordle.js"></script>
 
 </html>

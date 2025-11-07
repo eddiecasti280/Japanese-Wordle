@@ -102,7 +102,28 @@ hiraganas.set('xyu', 'ゅ');
 hiraganas.set('xyo', 'ょ');
 hiraganas.set('xtu', 'っ');
 
-var answer = "";
+/**
+ * ・清音（46文字）: 50音表の基本となる「あいうえお」などの文字。
+ * ・濁音（20文字）: 「が」「ぎ」「ぐ」「げ」「ご」「ざ」「じ」「ず」「ぜ」「ぞ」など。
+ * ・半濁音（5文字）: 「ぱ」「ぴ」「ぷ」「ぺ」「ぽ」。
+ * 合計: \(46+20+5=71\)文字。
+ */
+
+var data = null;
+var answer = getNewAnswer();;
+var answerArray = answer.split('');
+
+// generic fetch function
+async function fetchData(filepath) {
+  try {
+    const response = await fetch(filepath);
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return null;
+  }
+}
 
 /**
  * automatically moves to the next column if a japanese character is typed in
@@ -164,56 +185,66 @@ function getGroupInputs(className, groupPrefix) {
   return inputs.map(i => i.value);
 }
 
-// TODO: set the answer here
-function getAnswerAsArray() {
-  answer = "さくらい"; // example answer
-  return answer.split('');
+/**
+ * gets the random answer from a random JSON file
+ * json file is selected based on a random hiragana character
+ * @returns the answer
+ */
+function getNewAnswer() {
+  const randomWord = (Number)(Math.random() * 71); // there are 71 hiragana characters
+  console.log(`Selected JSON: js/katakana_data_${randomWord}行.json`);
+  document.getElementById("loadingstatus").innerText = "Initializing word list...";
+  data = fetchData(`js/katakana_data_${randomWord}行.json`).then((data) => {
+    if (data) {
+      answer = data['kana'][Math.floor(Math.random() * data['words'].length)];
+    }
+  });
+  document.getElementById("loadingstatus").innerText = "File Loaded.";
+  return answer;
 }
 
 
 
 // TODO: write logic to process the guess
 function processGuess(currentField) {
-  // get the group prefix from the current field id
-  const order = ['fi', 'se', 'th', 'fo', 'fv']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
-  const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
-  const userAnswer = getGroupInputs(currentField.className, groupPrefix).join('');
+      // get the group prefix from the current field id
+      const order = ['fi', 'se', 'th', 'fo', 'fv']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
+      const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
+      const userAnswer = getGroupInputs(currentField.className, groupPrefix).join('');
 
-  console.log("Processing guess: " + userAnswer);
+      console.log("Processing guess: " + userAnswer);
 
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
-  // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
+      // Add your logic to process the guess here
 
-  const answerArray = getAnswerAsArray();
+      for (let i = 0; i < userAnswer.length; i++) {
+        if (userAnswer[i] === answerArray[i]) {
+          // correct position
+          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
+        } else if (answerArray.includes(userAnswer[i])) {
+          // wrong position
+          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
+        } else {
+          // not in answer
+          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
+        }
+      }
 
-  for (let i = 0; i < userAnswer.length; i++) {
-    if (userAnswer[i] === answerArray[i]) {
-      // correct position
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
-    } else if (answerArray.includes(userAnswer[i])) {
-      // wrong position
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
-    } else {
-      // not in answer
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
+      // lock input after submission keep at end
+      const inputs = document.querySelectorAll('.' + currentField.className);
+      inputs.forEach(input => {
+        if (input.id.startsWith(groupPrefix)) {
+          input.disabled = true;
+        }
+      });
     }
-  }
-
-  // lock input after submission keep at end
-  const inputs = document.querySelectorAll('.' + currentField.className);
-  inputs.forEach(input => {
-    if (input.id.startsWith(groupPrefix)) {
-      input.disabled = true;
-    }
-  });
-}
 
 
