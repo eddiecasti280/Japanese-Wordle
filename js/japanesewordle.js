@@ -109,9 +109,10 @@ hiraganas.set('xtu', 'っ');
  * 合計: \(46+20+5=71\)文字。
  */
 
-var data = null;
-var answer = getNewAnswer();;
-var answerArray = answer.split('');
+// initialize gloabal variables
+var hiraganaArray = [...new Set(Array.from(hiraganas.values()))];
+var answer = "";
+
 
 // generic fetch function
 async function fetchData(filepath) {
@@ -146,6 +147,7 @@ function moveToNext(currentField, nextField) {
 }
 
 function onKeyDown(event, previousField, currentField) {
+
   const key = event.key;
 
   if (key === "Backspace" || key === "Delete") {
@@ -156,7 +158,7 @@ function onKeyDown(event, previousField, currentField) {
     }
   }
 
-  if (key === "Enter") {
+  if (answer && key === "Enter") {
     if (currentField.id.endsWith("fof")) {
       // user guesses here
       processGuess(currentField);
@@ -190,27 +192,49 @@ function getGroupInputs(className, groupPrefix) {
  * json file is selected based on a random hiragana character
  * @returns the answer
  */
-function getNewAnswer() {
-  const randomWord = (Number)(Math.random() * 71); // there are 71 hiragana characters
-  console.log(`Selected JSON: js/katakana_data_${randomWord}行.json`);
+async function getNewAnswer() {
+  let answer = "";
+  // create random values to select a random hiragana character
+  // TODO: change 5 to 70 later
+  const randomNum = Math.round(Math.random() * 5); // there are 71 hiragana characters
+
+  // testing logs
+  console.log(`Random Num: ${randomNum}`);
+
+  // get the random hiragana character
+  const randomHiragana = hiraganaArray[randomNum];
+  console.log(`Selected JSON: json/katakana_data_${randomHiragana}行.json`);
+
+  // update loading status
   document.getElementById("loadingstatus").innerText = "Initializing word list...";
-  data = fetchData(`js/katakana_data_${randomWord}行.json`).then((data) => {
+
+  // fetch the data from the selected JSON file
+  data = await fetchData(`json/katakana_data_${randomHiragana}行.json`).then((data) => {
     if (data) {
-      answer = data['kana'][Math.floor(Math.random() * data['words'].length)];
+      d_len = data.length;
+      console.log(`Loaded ${d_len} words from the file.`);
+
+      // select a random answer from the loaded data
+      loaded_load_array = data.map(item => item.kana);
+      // console.log("loaded array: " + str(loaded_load_array));
+      answer = loaded_load_array[Math.round(Math.floor(Math.random() * d_len))];
     }
   });
+  // update loading status
   document.getElementById("loadingstatus").innerText = "File Loaded.";
+  // out
+  console.log("Answer selected: " + answer);
   return answer;
 }
 
 
 
 // TODO: write logic to process the guess
-function processGuess(currentField) {
+async function processGuess(currentField) {
       // get the group prefix from the current field id
       const order = ['fi', 'se', 'th', 'fo', 'fv']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
       const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
-      const userAnswer = getGroupInputs(currentField.className, groupPrefix).join('');
+      const userAnswer = await getGroupInputs(currentField.className, groupPrefix);
 
       console.log("Processing guess: " + userAnswer);
 
@@ -225,7 +249,10 @@ function processGuess(currentField) {
       // Add your logic to process the guess here
       // Add your logic to process the guess here
 
+      const answerArray = answer.split("");
+
       for (let i = 0; i < userAnswer.length; i++) {
+        console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
         if (userAnswer[i] === answerArray[i]) {
           // correct position
           document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
@@ -248,3 +275,6 @@ function processGuess(currentField) {
     }
 
 
+    async function onLoad() {
+      answer = await getNewAnswer();
+    }
