@@ -337,16 +337,17 @@ async function onLoad() {
 }
 
 function closePopUp() {
-  document.getElementById("popup").hidden = true;
+  document.getElementById("gameoverpop").style.display = 'none';
 }
 
 function showGameOver() {
-  document.getElementById("popup").showPopover();
-  document.getElementById("popupmsg").innerText = `終了！答えは「${answer}(${answerKanji})」でした！`
+  var popup = document.getElementById('gameoverpop');
+  popup.style.display = 'block';
+  document.getElementById("gameovermsg").innerText = `終了！答えは「${answer}(${answerKanji})」でした！`
 }
 
 function quickInvalidPopUp(delayMilliseconds) {
-    var popup = document.getElementById('invalidword');
+    var popup = document.getElementById('quickinvalidpop');
     popup.style.display = 'block'; // Show the popup
     setTimeout(function() {
       popup.style.display = 'none'; // Hide the popup after the delay

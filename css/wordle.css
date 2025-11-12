@@ -36,3 +36,12 @@
         transition: 300ms all ease-in;
     }
 
+    .gameoverpopup {
+        text-align: center;
+    }
+
+    #quickinvalidpop {
+        text-align: center;
+        border-radius: 5px;
+    }
+
