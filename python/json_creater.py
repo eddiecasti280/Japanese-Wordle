@@ -64,7 +64,7 @@ def organize_words_to_map(words_array: list[str]) -> dict[str, list[str]]:
     return dicc
 
 
-wordle_list = extract_words("output/output.html")
+wordle_list = extract_words("output/output4.html")
 wordle_dict = organize_words_to_map(wordle_list)
 
 for letter, words in wordle_dict.items():

@@ -20,6 +20,9 @@ def download_html(url, filename):
         print(f"An error occurred: {e}")
 
 # Example usage:
-url_to_download = "https://tango.nante-yomu.com/4moji/"
-output_filename = "output/output.html"
-download_html(url_to_download, output_filename)
+for version in range(1, 4+1):
+    url_to_download = f'https://tango.nante-yomu.com/4moji/'
+    if version > 1:
+        url_to_download = f'https://tango.nante-yomu.com/4moji-{version}/'
+    output_filename = f'output/output{version}.html'
+    download_html(url_to_download, output_filename)

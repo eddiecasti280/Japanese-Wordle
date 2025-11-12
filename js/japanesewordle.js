@@ -112,6 +112,7 @@ hiraganas.set('xtu', 'っ');
 // initialize gloabal variables
 var hiraganaArray = [...new Set(Array.from(hiraganas.values()))];
 var answer = "";
+var answerKanji = "";
 
 
 // generic fetch function
@@ -146,6 +147,12 @@ function moveToNext(currentField, nextField) {
   }
 }
 
+/**
+ * actions when the key is down
+ * @param {*} event key event
+ * @param {*} previousField the previous field for actions
+ * @param {*} currentField the current field for getting inputs
+ */
 function onKeyDown(event, previousField, currentField) {
 
   const key = event.key;
@@ -166,7 +173,12 @@ function onKeyDown(event, previousField, currentField) {
   }
 }
 
-
+/**
+ * gets the entire rows inputs
+ * @param {*} className the name of class of the row
+ * @param {*} groupPrefix the first chars of the string that points where the input is at
+ * @returns the string from the entire row of inputs
+ */
 function getGroupInputs(className, groupPrefix) {
   const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
 
@@ -195,11 +207,10 @@ function getGroupInputs(className, groupPrefix) {
 async function getNewAnswer() {
   let answer = "";
   // create random values to select a random hiragana character
-  // TODO: change 5 to 70 later
-  const randomNum = Math.round(Math.random() * 5); // there are 71 hiragana characters
+  const randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
 
-  // testing logs
-  console.log(`Random Num: ${randomNum}`);
+  // // testing logs
+  // console.log(`Random Num: ${randomNum}`);
 
   // get the random hiragana character
   const randomHiragana = hiraganaArray[randomNum];
@@ -218,6 +229,7 @@ async function getNewAnswer() {
       loaded_load_array = data.map(item => item.kana);
       // console.log("loaded array: " + str(loaded_load_array));
       answer = loaded_load_array[Math.round(Math.floor(Math.random() * d_len))];
+      answerKanji = data.find(item => item.kana == answer).word;
     }
   });
   // update loading status
@@ -229,52 +241,114 @@ async function getNewAnswer() {
 
 
 
-// TODO: write logic to process the guess
+/**
+ * writes and processes the user guess while keeping track of html
+ * @param {*} currentField
+ * @returns
+ */
 async function processGuess(currentField) {
-      // get the group prefix from the current field id
-      const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
-      const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
-      const userAnswer = await getGroupInputs(currentField.className, groupPrefix);
+  // get the group prefix from the current field id
+  const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
+  const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
+  const userAnswer = await getGroupInputs(currentField.className, groupPrefix);
 
-      console.log("Processing guess: " + userAnswer);
+  console.log("Processing guess: " + userAnswer);
 
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
-      // Add your logic to process the guess here
+  // TODO: Add your logic to process the guess here
+  // TODO: Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
+  // Add your logic to process the guess here
 
-      const answerArray = answer.split("");
+    // part of checking valid word
+  isInvalidAnswer = false;
 
-      for (let i = 0; i < userAnswer.length; i++) {
-        console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
-        if (userAnswer[i] === answerArray[i]) {
-          // correct position
-          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
-        } else if (answerArray.includes(userAnswer[i])) {
-          // wrong position
-          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
-        } else {
-          // not in answer
-          document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
-        }
+  // before locking, check is the word is valid
+  data = await fetchData(`json/katakana_data_${userAnswer[0]}行.json`).then((data) => {
+    if (data) {
+      d_len = data.length;
+      console.log(`Loaded ${d_len} words from the file.`);
+      const joinedUserAnswer = userAnswer.join('')
+      matchedWord = data.find(word => word.kana == joinedUserAnswer);
+      console.log(userAnswer + " matches with: " + matchedWord)
+      if (!matchedWord)
+        isInvalidAnswer = true;
+    } else {
+      isInvalidAnswer = true;
+    }
+  });
+
+  if (isInvalidAnswer) {
+    console.warn("Recived an invalid answer.")
+    quickInvalidPopUp(1000)
+    return;
+  }
+
+
+  const answerArray = answer.split("");
+
+  for (let i = 0; i < userAnswer.length; i++) {
+    console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
+    if (userAnswer[i] === answerArray[i]) {
+      // correct position
+      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
+    } else if (answerArray.includes(userAnswer[i])) {
+      // wrong position
+      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
+    } else {
+      // not in answer
+      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
+    }
+  }
+
+  // lock input after submission keep at end
+  const inputs = document.querySelectorAll('.' + currentField.className);
+  inputs.forEach(input => {
+    if (input.id.startsWith(groupPrefix)) {
+      input.disabled = true;
+    }
+    const ordIndex = order.indexOf(groupPrefix) + 1;
+    if (input.id.startsWith([order[ordIndex]])) {
+      input.disabled = false;
+
+      if (order.length <= ordIndex || ordIndex < 0) {
+        showGameOver();
       }
-
-      // lock input after submission keep at end
-      const inputs = document.querySelectorAll('.' + currentField.className);
-      inputs.forEach(input => {
-        if (input.id.startsWith(groupPrefix)) {
-          input.disabled = true;
-        }
-      });
     }
+  });
+}
 
 
-    async function onLoad() {
-      answer = await getNewAnswer();
+async function onLoad() {
+  answer = await getNewAnswer();
+  const inputs = document.querySelectorAll('.worrow');
+  inputs.forEach(input => {
+    if (input.id.startsWith('fi')) {
+      input.disabled = false;
+    } else {
+      input.disabled = true;
     }
+  })
+}
+
+function closePopUp() {
+  document.getElementById("popup").hidden = true;
+}
+
+function showGameOver() {
+  document.getElementById("popup").showPopover();
+  document.getElementById("popupmsg").innerText = `終了！答えは「${answer}(${answerKanji})」でした！`
+}
+
+function quickInvalidPopUp(delayMilliseconds) {
+    var popup = document.getElementById('invalidword');
+    popup.style.display = 'block'; // Show the popup
+    setTimeout(function() {
+      popup.style.display = 'none'; // Hide the popup after the delay
+    }, delayMilliseconds);
+  }
