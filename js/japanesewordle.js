@@ -207,7 +207,10 @@ function getGroupInputs(className, groupPrefix) {
 async function getNewAnswer() {
   let answer = "";
   // create random values to select a random hiragana character
-  const randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
+  let randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
+  while (hiraganaArray[randomNum] == 'づ') { // no word start from 「づ」
+    randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
+  }
 
   // // testing logs
   // console.log(`Random Num: ${randomNum}`);
@@ -238,7 +241,6 @@ async function getNewAnswer() {
   console.log("Answer selected: " + answer);
   return answer;
 }
-
 
 
 /**
@@ -282,19 +284,25 @@ async function processGuess(currentField) {
   }
 
 
-  const answerArray = answer.split("");
+  const answerArray = answer.split("")
 
-  for (let i = 0; i < userAnswer.length; i++) {
-    console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
-    if (userAnswer[i] === answerArray[i]) {
-      // correct position
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
-    } else if (answerArray.includes(userAnswer[i])) {
-      // wrong position
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
-    } else {
-      // not in answer
-      document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
+  const answerStatusArray = getCorrectionStateArray(answerArray, userAnswer);
+
+  for (let i = 0; i < answerArray.length; i++) {
+    // console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
+    switch (answerStatusArray[i]) {
+      case 1:
+        // wrong position
+        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
+        break;
+      case 2:
+        // correct position
+        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
+        break;
+      default:
+        // not in answer
+        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
+        break;
     }
   }
 
@@ -362,4 +370,39 @@ function quickInvalidPopUp(delayMilliseconds) {
   setTimeout(function () {
     popup.style.display = 'none'; // Hide the popup after the delay
   }, delayMilliseconds);
+}
+
+/**
+ * for some i, res[i] = 2 if correct, 1 if correct letter but incorrect spot, or 0 if incorrect
+ * @param {*} answerList - the correct answer of the word in a list
+ * @param {*} guessList  - the user's guess of the word in a list
+ * @returns the organized list of arrays
+ */
+function getCorrectionStateArray(answerList, guessList) {
+  // res is always propertional to user guess index
+  let temp = [...answerList];
+  let res = new Array(answerList.length);
+
+  // testing out before anything runs
+  // console.log(`temp=${temp} res=${res} guessList=${guessList} answerList=${answerList}`)
+
+  // logn search thru the words
+  for (i = 0; i < answerList.length; i++) {
+    if (guessList[i] === answerList[i]) {
+      temp[i] = '2';
+      res[i] = 2;
+      continue;
+    }
+    for (j = i; j < temp.length; j++) {
+      if (guessList[i] == temp[j]) {
+        temp[j] = '1';
+        res[i] = 1;
+      } else if (res[i] != 2 && res[i] != 1) {
+        temp[i] = '0';
+        res[i] = 0;
+      }
+    }
+  }
+  // console.log(`temp=${temp} res=${res} guessList=${guessList} answerList=${answerList}`)
+  return res;
 }

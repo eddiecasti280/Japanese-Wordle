@@ -5,7 +5,7 @@ import re
 
 def process_line(line: str) -> list[str]:
     lines = line.split("<br />")
-    katakana_pattern = r"[ァ-ンｧ-ﾝﾞﾟ]"
+    katakana_pattern = r"[ア-ン]"
     i = 0
     while i < len(lines):
         lines[i] = lines[i].strip().replace("<p>", "").replace("</p>", "")
@@ -64,7 +64,7 @@ def organize_words_to_map(words_array: list[str]) -> dict[str, list[str]]:
     return dicc
 
 
-wordle_list = extract_words("output/output4.html")
+wordle_list = extract_words("output/output2.html")
 wordle_dict = organize_words_to_map(wordle_list)
 
 for letter, words in wordle_dict.items():
