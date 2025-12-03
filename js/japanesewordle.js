@@ -211,7 +211,7 @@ async function getNewAnswer() {
   let answer = "";
   // create random values to select a random hiragana character
   let randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
-  console.log(hiraganaArray[70])
+  // console.log(hiraganaArray[70])
   while (hiraganaArray[randomNum] == 'づ' || hiraganaArray[randomNum] == 'を' || hiraganaArray[randomNum] == 'ん') { // no word start from 「づ」「を」「ん」
     randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
   }
@@ -263,7 +263,7 @@ async function processGuess(currentField) {
   // TODO: Add your logic to process the guess here
 
   // part of checking valid word
-  isInvalidAnswer = false;
+  let isInvalidAnswer = false;
   const joinedUserAnswer = userAnswer.join('')
 
   // before locking, check is the word is valid
@@ -274,8 +274,6 @@ async function processGuess(currentField) {
       matchedWord = data.find(word => word.kana == joinedUserAnswer);
       // console.log(userAnswer + " matches with: " + matchedWord)
       if (!matchedWord) {
-        isInvalidAnswer = true;
-      } else {
         isInvalidAnswer = true;
       }
     }
@@ -294,20 +292,25 @@ async function processGuess(currentField) {
 
   for (let i = 0; i < answerArray.length; i++) {
     // console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
-    switch (answerStatusArray[i]) {
-      case 1:
-        // wrong position
-        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'yellow';
-        break;
-      case 2:
-        // correct position
-        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgreen';
-        break;
-      default:
-        // not in answer
-        document.getElementById(groupPrefix + order[i] + 'f').style.backgroundColor = 'lightgray';
-        break;
-    }
+    const box = document.getElementById(groupPrefix + order[i] + 'f');
+    const timoutOutDelay = 500;
+    setTimeout(() => {
+      switch (answerStatusArray[i]) {
+        case 1:
+          // wrong position
+          box.style.backgroundColor = 'yellow';
+          break;
+        case 2:
+          // correct position
+          box.style.backgroundColor = 'lightgreen';
+          break;
+        default:
+          // not in answer
+          box.style.backgroundColor = 'lightgray';
+          break;
+      }
+    }, timoutOutDelay);
+
   }
 
   const isCorrect = answer == joinedUserAnswer;
@@ -397,17 +400,17 @@ function getCorrectionStateArray(answerList, guessList) {
       res[i] = 2;
     }
   }
-    for (i = 0; i < res.length; i++) {
-      if (res[i] == 2) {
-        continue;
-      }
-      for (j = 0; j < res.length; j++) {
-        if (guessList[i] == tempAns[j]) {
-          tempAns[j] = '1'
-          res[i] = 1
-        }
+  for (i = 0; i < res.length; i++) {
+    if (res[i] == 2) {
+      continue;
+    }
+    for (j = 0; j < res.length; j++) {
+      if (guessList[i] == tempAns[j]) {
+        tempAns[j] = '1'
+        res[i] = 1
       }
     }
+  }
   // console.log(`temp=${temp} res=${res} guessList=${guessList} answerList=${answerList}`)
   return res;
 }

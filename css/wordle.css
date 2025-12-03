@@ -3,7 +3,7 @@
         background-color: rgb(213, 213, 213);
         color: rgb(76, 76, 76);
         align-items: center;
-        transition: 2000ms ease-in-out;
+        /* transition: 2000ms ease-in-out; */
         min-width: 500px;
     }
 
@@ -38,7 +38,7 @@
         height: 1.5em;
         font-size: 32px;
         text-align: center;
-        transition: 1000ms ease-in;
+        transition: 500ms ease-in;
     }
 
     .gameoverpopup {
