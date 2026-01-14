@@ -1,4 +1,4 @@
-// hiragana
+// hiragana mappings
 var hiraganas = new Map();
 // あ行
 hiraganas.set('a', 'あ');
@@ -15,6 +15,7 @@ hiraganas.set('ko', 'こ');
 // さ行
 hiraganas.set('sa', 'さ');
 hiraganas.set('si', 'し');
+hiraganas.set('shi', 'し');
 hiraganas.set('su', 'す');
 hiraganas.set('se', 'せ');
 hiraganas.set('so', 'そ');
@@ -60,6 +61,7 @@ hiraganas.set('ro', 'ろ');
 hiraganas.set('wa', 'わ');
 hiraganas.set('wo', 'を');
 hiraganas.set('nn', 'ん');
+hiraganas.set('n', 'ん');
 // が行
 hiraganas.set('ga', 'が');
 hiraganas.set('gi', 'ぎ');
@@ -103,452 +105,34 @@ hiraganas.set('xyo', 'ょ');
 hiraganas.set('xtu', 'っ');
 hiraganas.set('xtsu', 'っ');
 
-/**
- * ・清音（46文字）: 50音表の基本となる「あいうえお」などの文字。
- * ・濁音（20文字）: 「が」「ぎ」「ぐ」「げ」「ご」「ざ」「じ」「ず」「ぜ」「ぞ」など。
- * ・半濁音（5文字）: 「ぱ」「ぴ」「ぷ」「ぺ」「ぽ」。
- * 合計: \(46+20+5=71\)文字。
- */
-
-// initialize gloabal variables
+// Global variables
 var hiraganaArray = [...new Set(Array.from(hiraganas.values()))];
 var answer = "";
 var answerKanji = "";
+var wordsDatabase = null;
+var currentRow = 0;
 
-
-// generic fetch function
-async function fetchData(filepath) {
-  try {
-    const response = await fetch(filepath);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return null;
-  }
-}
-
-/**
- * automatically moves to the next column if a japanese character is typed in
- * @param {*} currentField the current input field we are checking on
- * @param {*} nextField the next input field to move to
- */
-function moveToNext(currentField, nextField) {
-  const strr = currentField.value + "";
-  currentField.value = currentField.value.trim();
-
-  if (hiraganaArray.includes(strr) && nextField != null) {
-    nextField.focus();
-  } else if (strr.endsWith('a') || strr.endsWith('i') || strr.endsWith('u') || strr.endsWith('e') || strr.endsWith('o') || strr.endsWith('n')) {
-    japchar = hiraganas.get(strr);
-    if (japchar != undefined) {
-      currentField.value = japchar;
-      if (nextField != null) {
-        nextField.focus();
-      }
-    }
-  }
-}
-
-/**
- * actions when the key is down
- * @param {*} event key event
- * @param {*} previousField the previous field for actions
- * @param {*} currentField the current field for getting inputs
- */
-function onKeyDown(event, previousField, currentField) {
-
-  const key = event.key;
-
-  if (key === "Backspace" || key === "Delete") {
-    if (previousField != null && currentField.value == "") {
-      previousField.focus();
-      length = previousField.value.length;
-      previousField.setSelectionRange(length, length);
-    }
-  }
-
-  if (answer && key === "Enter") {
-    if (currentField.id.endsWith("fof")) {
-      // user guesses here
-      processGuess(currentField);
-    }
-  }
-}
-
-/**
- * gets the entire rows inputs
- * @param {*} className the name of class of the row
- * @param {*} groupPrefix the first chars of the string that points where the input is at
- * @returns the string from the entire row of inputs
- */
-function getGroupInputs(className, groupPrefix) {
-  const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
-
-  // Build a regex like /^fv(fi|se|th|fo|fv)f$/
-  const regex = new RegExp(`^${groupPrefix}(fi|se|th|fo|fv)f$`);
-
-  // get all matching inputs
-  const inputs = Array.from(document.querySelectorAll('.' + className))
-    .filter(input => regex.test(input.id));
-
-  // sort based on index in order array
-  inputs.sort((a, b) => {
-    const aKey = order.findIndex(k => a.id.includes(k));
-    const bKey = order.findIndex(k => b.id.includes(k));
-    return aKey - bKey;
-  });
-
-  return inputs.map(i => i.value);
-}
-
-/**
- * gets the random answer from a random JSON file
- * json file is selected based on a random hiragana character
- * @returns the answer
- */
-async function getNewAnswer() {
-  let answer = "";
-  // create random values to select a random hiragana character
-  let randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
-  // console.log(hiraganaArray[70])
-  while (hiraganaArray[randomNum] == 'づ' || hiraganaArray[randomNum] == 'を' || hiraganaArray[randomNum] == 'ん') { // no word start from 「づ」「を」「ん」
-    randomNum = Math.round(Math.random() * 70); // there are 71 hiragana characters
-  }
-
-  // // testing logs
-  // console.log(`Random Num: ${randomNum}`);
-
-  // get the random hiragana character
-  const randomHiragana = hiraganaArray[randomNum];
-  console.log(`Selected JSON: json/katakana_data_${randomHiragana}行.json`);
-
-  showToast('単語リストを初期化しています...', 'info', 2000);
-
-  // fetch the data from the selected JSON file
-  data = await fetchData(`json/katakana_data_${randomHiragana}行.json`).then((data) => {
-    if (data) {
-      d_len = data.length;
-      console.log(`Loaded ${d_len} words from the file.`);
-
-      // select a random answer from the loaded data
-      loaded_load_array = data.map(item => item.kana);
-      // console.log("loaded array: " + str(loaded_load_array));
-      answer = loaded_load_array[Math.round(Math.floor(Math.random() * d_len))];
-      answerKanji = data.find(item => item.kana == answer).word;
-    }
-  });
-  // update loading status
-  document.getElementById("loadingstatus").innerText = "File Loaded.";
-  // out
-  console.log("Answer selected: " + answer);
-  return answer;
-}
-
-
-/**
- * writes and processes the user guess while keeping track of html
- * @param {*} currentField
- * @returns
- */
-async function processGuess(currentField) {
-  // get the group prefix from the current field id
-  const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei']; // fi=1st, se=2nd, th=3rd, fo=4th, fv=5th
-  const groupPrefix = currentField.id.substring(0, 2); // e.g., 'fv' from 'fvfof'
-  const userAnswer = await getGroupInputs(currentField.className, groupPrefix);
-
-  console.log("Processing guess: " + userAnswer);
-
-  // TODO: Add your logic to process the guess here
-
-  // part of checking valid word
-  let isInvalidAnswer = false;
-  const joinedUserAnswer = userAnswer.join('')
-
-  // before locking, check is the word is valid
-  data = await fetchData(`json/katakana_data_${userAnswer[0]}行.json`).then((data) => {
-    if (data) {
-      d_len = data.length;
-      console.log(`Loaded ${d_len} words from the file.`);
-      matchedWord = data.find(word => word.kana == joinedUserAnswer);
-      // console.log(userAnswer + " matches with: " + matchedWord)
-      if (!matchedWord) {
-        isInvalidAnswer = true;
-      }
-    }
-  });
-
-  const isValidWord = await validateWord(joinedUserAnswer);
-  if (!isValidWord) {
-    console.warn("Received an invalid answer.");
-    showToast('Word not in word list!', 'warning', 2000);
-    return;
-  }
-
-  if (isInvalidAnswer) {
-    console.warn("Recived an invalid answer.")
-    quickInvalidPopUp(1000)
-    return;
-  }
-
-
-  const answerArray = answer.split("")
-
-  const answerStatusArray = getCorrectionStateArray(answerArray, userAnswer);
-
-  for (let i = 0; i < answerArray.length; i++) {
-    // console.log(`Comparing userAnswer[${i}] = ${userAnswer[i]} with answerArray[${i}] = ${answerArray[i]}`);
-    const box = document.getElementById(groupPrefix + order[i] + 'f');
-    const timoutOutDelay = 500;
-    setTimeout(() => {
-      switch (answerStatusArray[i]) {
-        case 1:
-          // wrong position
-          box.style.backgroundColor = 'yellow';
-          break;
-        case 2:
-          // correct position
-          box.style.backgroundColor = 'lightgreen';
-          break;
-        default:
-          // not in answer
-          box.style.backgroundColor = 'lightgray';
-          break;
-      }
-    }, timoutOutDelay);
-
-  }
-
-  const isCorrect = answer == joinedUserAnswer;
-
-  // lock input after submission keep at end
-  const inputs = document.querySelectorAll('.' + currentField.className);
-  inputs.forEach(input => {
-    if (input.id.startsWith(groupPrefix)) {
-      input.disabled = true;
-    }
-    const ordIndex = order.indexOf(groupPrefix) + 1;
-    if (input.id.startsWith([order[ordIndex]]) && !isCorrect) {
-      input.disabled = false;
-
-      if (order.length <= ordIndex || ordIndex < 0) {
-        showGameOver();
-      }
-    }
-  });
-
-  // when the answer is actually correct
-  if (isCorrect) {
-    showVictory()
-  }
-}
-
-
-async function onLoad() {
-  showToast('Loading word database...', 'info');
-  
-  answer = await getNewAnswer();
-  
-  showToast('Ready to play!', 'success', 2000);
-  
-  const inputs = document.querySelectorAll('.worrow');
-  inputs.forEach(input => {
-    if (input.id.startsWith('fi')) {
-      input.disabled = false;
-    } else {
-      input.disabled = true;
-    }
-  });
-  
-  // Initialize keyboard
-  await createKeyboard();
-}
-
-
-function closePopUp() {
-  document.getElementById("gameoverpop").style.display = 'none';
-  document.getElementById("victorypopup").style.display = 'none';
-}
-
-function showVictory() {
-  setTimeout(function () {
-    var popup = document.getElementById('victorypopup');
-    popup.style.display = 'block';
-    document.getElementById("victorypopupmsg").innerText = `正解！答えは「${answer}(${answerKanji})」でした！`
-    document.getElementById("background").style.backgroundColor = 'lightgreen';
-  }, 1000);
-}
-
-function showGameOver() {
-  var popup = document.getElementById('gameoverpop');
-  popup.style.display = 'block';
-  document.getElementById("gameovermsg").innerText = `終了！答えは「${answer}(${answerKanji})」でした！`
-}
-
-function quickInvalidPopUp(delayMilliseconds) {
-  var popup = document.getElementById('quickinvalidpop');
-  popup.style.display = 'block'; // Show the popup
-  setTimeout(function () {
-    popup.style.display = 'none'; // Hide the popup after the delay
-  }, delayMilliseconds);
-}
-
-
-/**
- * for some i, res[i] = 2 if correct, 1 if correct letter but incorrect spot, or 0 if incorrect
- * @param {*} answerList - the correct answer of the word in a list
- * @param {*} guessList  - the user's guess of the word in a list
- * @returns the organized list of arrays
- */
-function getCorrectionStateArray(answerList, guessList) {
-  // res is always propertional to user guess index
-  let res = new Array(answerList.length);
-  let tempAns = [...answerList];
-
-  // console.log(`temp=${temp} res=${res} guessList=${guessList} answerList=${answerList}`)
-
-  // logn search thru the words
-  for (i = 0; i < answerList.length; i++) {
-    if (guessList[i] === answerList[i]) {
-      tempAns[i] = '2'
-      res[i] = 2;
-    }
-  }
-  for (i = 0; i < res.length; i++) {
-    if (res[i] == 2) {
-      continue;
-    }
-    for (j = 0; j < res.length; j++) {
-      if (guessList[i] == tempAns[j]) {
-        tempAns[j] = '1'
-        res[i] = 1
-      }
-    }
-  }
-  // console.log(`temp=${temp} res=${res} guessList=${guessList} answerList=${answerList}`)
-  return res;
-}
-
-// Add this to japanesewordle.js
-async function createKeyboard() {
-  const keyboardSection = document.getElementById('jp_preview_keyboard');
-  
-  // Define keyboard layout (Japanese style)
-  const keyboardLayout = [
-    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
-    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', ''],
-    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', 'を'],
-    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', ''],
-    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'ん'],
-    ['゛', '゜', 'ゃ', 'ゅ', 'ょ', 'っ', 'ー', '削除', 'Enter']
-  ];
-  
-  keyboardSection.innerHTML = '<div class="keyboard-container">';
-  
-  keyboardLayout.forEach((row, rowIndex) => {
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'keyboard-row';
-    
-    row.forEach(key => {
-      if (key) {
-        const button = document.createElement('button');
-        button.className = 'keyboard-key';
-        button.textContent = key;
-        button.onclick = () => handleKeyboardInput(key);
-        
-        // Special styling for action keys
-        if (key === '削除' || key === 'Enter') {
-          button.classList.add('action-key');
-        }
-        
-        rowDiv.appendChild(button);
-      }
-    });
-    
-    keyboardSection.appendChild(rowDiv);
-  });
-}
-
-function handleKeyboardInput(key) {
-  const activeElement = document.activeElement;
-  
-  if (!activeElement || !activeElement.classList.contains('worrow')) {
-    // Find the first enabled input
-    const enabledInputs = Array.from(document.querySelectorAll('.worrow:not(:disabled)'));
-    if (enabledInputs.length > 0) {
-      enabledInputs[0].focus();
-    }
-    return;
-  }
-  
-  if (key === '削除') {
-    // Handle backspace
-    const event = new KeyboardEvent('keydown', { key: 'Backspace' });
-    activeElement.dispatchEvent(event);
-    if (activeElement.value.length > 0) {
-      activeElement.value = activeElement.value.slice(0, -1);
-    }
-  } else if (key === 'Enter') {
-    // Handle enter
-    const event = new KeyboardEvent('keydown', { key: 'Enter' });
-    activeElement.dispatchEvent(event);
-  } else if (key === '゛' || key === '゜') {
-    // Handle dakuten/handakuten
-    applyDakuten(activeElement, key);
-  } else {
-    // Regular character input
-    activeElement.value = key;
-    const currentField = activeElement;
-    const nextField = getNextField(currentField);
-    moveToNext(currentField, nextField);
-  }
-}
-
-function applyDakuten(field, mark) {
-  const dakutenMap = {
-    'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
-    'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
-    'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
-    'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
-  };
-  
-  const handakutenMap = {
-    'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ'
-  };
-  
-  const currentChar = field.value;
-  if (mark === '゛' && dakutenMap[currentChar]) {
-    field.value = dakutenMap[currentChar];
-  } else if (mark === '゜' && handakutenMap[currentChar]) {
-    field.value = handakutenMap[currentChar];
-  }
-}
+// Toast notification system
 function showToast(message, type = 'info', duration = 3000) {
-  // Remove any existing toast
   const existingToast = document.querySelector('.toast');
   if (existingToast) {
     existingToast.remove();
   }
   
-  // Create new toast
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
   
-  // Show toast
   setTimeout(() => toast.classList.add('show'), 10);
   
-  // Hide and remove toast
   setTimeout(() => {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 300);
   }, duration);
 }
 
-
-let wordsDatabase = null;
-
+// Load words database
 async function loadWordsDatabase() {
   try {
     const response = await fetch('words_database.json');
@@ -564,6 +148,7 @@ async function loadWordsDatabase() {
   }
 }
 
+// Get new answer
 async function getNewAnswer() {
   if (!wordsDatabase) {
     showToast('Initializing word list...', 'info', 2000);
@@ -575,10 +160,7 @@ async function getNewAnswer() {
     return null;
   }
   
-  // Filter for 4-character words only
   const fourCharWords = wordsDatabase.words.filter(w => w.kana.length === 4);
-  
-  // Select random word
   const randomIndex = Math.floor(Math.random() * fourCharWords.length);
   const selectedWord = fourCharWords[randomIndex];
   
@@ -587,11 +169,378 @@ async function getNewAnswer() {
   
   console.log(`Answer selected: ${answer} (${answerKanji})`);
   showToast('New word selected!', 'success', 1500);
+  
   return answer;
 }
 
+// Validate word
 async function validateWord(word) {
   if (!wordsDatabase) return false;
-  
   return wordsDatabase.words.some(w => w.kana === word);
+}
+
+// Move to next input field
+function moveToNext(currentField, nextField) {
+  const strr = currentField.value + "";
+  currentField.value = currentField.value.trim();
+
+  if (hiraganaArray.includes(strr) && nextField != null) {
+    nextField.focus();
+  } else if (strr.length > 0) {
+    // Check for romaji conversion
+    const japchar = hiraganas.get(strr.toLowerCase());
+    if (japchar != undefined) {
+      currentField.value = japchar;
+      if (nextField != null) {
+        nextField.focus();
+      }
+    }
+  }
+}
+
+// Handle key down events
+function onKeyDown(event, previousField, currentField) {
+  const key = event.key;
+
+  if (key === "Backspace" || key === "Delete") {
+    if (previousField != null && currentField.value == "") {
+      previousField.focus();
+      const length = previousField.value.length;
+      previousField.setSelectionRange(length, length);
+    }
+  }
+
+  if (answer && key === "Enter") {
+    if (currentField.id.endsWith("fof")) {
+      processGuess(currentField);
+    }
+  }
+}
+
+// Get next field helper
+function getNextField(currentField) {
+  const order = ['fif', 'sef', 'thf', 'fof'];
+  const currentId = currentField.id;
+  
+  for (let i = 0; i < order.length - 1; i++) {
+    if (currentId.includes(order[i])) {
+      return document.getElementById(currentId.replace(order[i], order[i + 1]));
+    }
+  }
+  return null;
+}
+
+// Get group inputs
+function getGroupInputs(className, groupPrefix) {
+  const order = ['fi', 'se', 'th', 'fo'];
+  const regex = new RegExp(`^${groupPrefix}(fi|se|th|fo)f$`);
+  
+  const inputs = Array.from(document.querySelectorAll('.' + className))
+    .filter(input => regex.test(input.id));
+  
+  inputs.sort((a, b) => {
+    const aKey = order.findIndex(k => a.id.includes(k));
+    const bKey = order.findIndex(k => b.id.includes(k));
+    return aKey - bKey;
+  });
+  
+  return inputs.map(i => i.value);
+}
+
+// Process user guess
+async function processGuess(currentField) {
+  const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei'];
+  const groupPrefix = currentField.id.substring(0, 2);
+  const userAnswer = getGroupInputs(currentField.className, groupPrefix);
+  const joinedUserAnswer = userAnswer.join('');
+  
+  console.log("Processing guess: " + joinedUserAnswer);
+  
+  // Check if all fields are filled
+  if (userAnswer.some(char => !char)) {
+    showToast('Please fill all fields', 'warning', 2000);
+    return;
+  }
+  
+  // Validate word
+  const isValidWord = await validateWord(joinedUserAnswer);
+  
+  if (!isValidWord) {
+    console.warn("Received an invalid answer.");
+    showToast('Word not in word list!', 'warning', 2000);
+    return;
+  }
+  
+  const answerArray = answer.split("");
+  const answerStatusArray = getCorrectionStateArray(answerArray, userAnswer);
+  
+  // Color the boxes with delay
+  for (let i = 0; i < answerArray.length; i++) {
+    const box = document.getElementById(groupPrefix + ['fi', 'se', 'th', 'fo'][i] + 'f');
+    const timeoutDelay = i * 150;
+    
+    setTimeout(() => {
+      switch (answerStatusArray[i]) {
+        case 1:
+          box.style.backgroundColor = 'yellow';
+          break;
+        case 2:
+          box.style.backgroundColor = 'lightgreen';
+          break;
+        default:
+          box.style.backgroundColor = 'lightgray';
+          break;
+      }
+    }, timeoutDelay);
+  }
+  
+  const isCorrect = answer === joinedUserAnswer;
+  
+  // Lock current row and unlock next
+  const inputs = document.querySelectorAll('.' + currentField.className);
+  inputs.forEach(input => {
+    if (input.id.startsWith(groupPrefix)) {
+      input.disabled = true;
+    }
+  });
+  
+  if (isCorrect) {
+    setTimeout(() => showVictory(), 800);
+  } else {
+    const ordIndex = order.indexOf(groupPrefix) + 1;
+    if (ordIndex < order.length) {
+      // Enable next row
+      setTimeout(() => {
+        inputs.forEach(input => {
+          if (input.id.startsWith(order[ordIndex])) {
+            input.disabled = false;
+            if (input.id.includes('fif')) {
+              input.focus();
+            }
+          }
+        });
+      }, 600);
+    } else {
+      // Game over
+      setTimeout(() => showGameOver(), 800);
+    }
+  }
+  
+  currentRow++;
+}
+
+// Get correction state array
+function getCorrectionStateArray(answerList, guessList) {
+  let res = new Array(answerList.length).fill(0);
+  let tempAns = [...answerList];
+  
+  // First pass: mark correct positions
+  for (let i = 0; i < answerList.length; i++) {
+    if (guessList[i] === answerList[i]) {
+      tempAns[i] = null;
+      res[i] = 2;
+    }
+  }
+  
+  // Second pass: mark wrong positions
+  for (let i = 0; i < res.length; i++) {
+    if (res[i] !== 2) {
+      for (let j = 0; j < tempAns.length; j++) {
+        if (tempAns[j] && guessList[i] === tempAns[j]) {
+          tempAns[j] = null;
+          res[i] = 1;
+          break;
+        }
+      }
+    }
+  }
+  
+  return res;
+}
+
+// Create on-screen keyboard
+async function createKeyboard() {
+  const keyboardSection = document.getElementById('jp_preview_keyboard');
+  
+  const keyboardLayout = [
+    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', ''],
+    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', 'を'],
+    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', ''],
+    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'ん'],
+    ['゛', '゜', 'ゃ', 'ゅ', 'ょ', 'っ', 'ー', '⌫', 'Enter']
+  ];
+  
+  keyboardSection.innerHTML = '';
+  const container = document.createElement('div');
+  container.className = 'keyboard-container';
+  
+  keyboardLayout.forEach((row) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
+    
+    row.forEach(key => {
+      if (key) {
+        const button = document.createElement('button');
+        button.className = 'keyboard-key';
+        button.textContent = key === '⌫' ? '削除' : key;
+        button.onclick = () => handleKeyboardInput(key);
+        
+        if (key === '⌫' || key === 'Enter') {
+          button.classList.add('action-key');
+        }
+        
+        rowDiv.appendChild(button);
+      }
+    });
+    
+    container.appendChild(rowDiv);
+  });
+  
+  keyboardSection.appendChild(container);
+}
+
+// Handle keyboard input
+function handleKeyboardInput(key) {
+  // Find the currently active input or first enabled input
+  let activeElement = document.activeElement;
+  
+  if (!activeElement || !activeElement.classList.contains('worrow') || activeElement.disabled) {
+    const enabledInputs = Array.from(document.querySelectorAll('.worrow:not(:disabled)'));
+    if (enabledInputs.length > 0) {
+      activeElement = enabledInputs.find(input => !input.value) || enabledInputs[0];
+      activeElement.focus();
+    } else {
+      return;
+    }
+  }
+  
+  if (key === '⌫') {
+    // Handle backspace
+    if (activeElement.value) {
+      activeElement.value = '';
+    } else {
+      // Move to previous field if current is empty
+      const event = new KeyboardEvent('keydown', { key: 'Backspace' });
+      activeElement.dispatchEvent(event);
+      
+      const prevField = getPreviousField(activeElement);
+      if (prevField && !prevField.disabled) {
+        prevField.focus();
+        prevField.value = '';
+      }
+    }
+  } else if (key === 'Enter') {
+    // Find the last field in the current row
+    const rowPrefix = activeElement.id.substring(0, 2);
+    const lastField = document.getElementById(rowPrefix + 'fof');
+    if (lastField) {
+      processGuess(lastField);
+    }
+  } else if (key === '゛' || key === '゜') {
+    // Apply dakuten/handakuten
+    applyDakuten(activeElement, key);
+  } else {
+    // Regular character input
+    activeElement.value = key;
+    const nextField = getNextField(activeElement);
+    if (nextField && !nextField.disabled) {
+      nextField.focus();
+    }
+  }
+}
+
+// Get previous field helper
+function getPreviousField(currentField) {
+  const order = ['fif', 'sef', 'thf', 'fof'];
+  const currentId = currentField.id;
+  
+  for (let i = order.length - 1; i > 0; i--) {
+    if (currentId.includes(order[i])) {
+      return document.getElementById(currentId.replace(order[i], order[i - 1]));
+    }
+  }
+  return null;
+}
+
+// Apply dakuten/handakuten
+function applyDakuten(field, mark) {
+  const dakutenMap = {
+    'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+    'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+    'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+    'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
+  };
+  
+  const handakutenMap = {
+    'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ'
+  };
+  
+  // Check previous field if current is empty
+  let targetField = field;
+  if (!field.value) {
+    targetField = getPreviousField(field);
+    if (!targetField || !targetField.value) return;
+  }
+  
+  const currentChar = targetField.value;
+  if (mark === '゛' && dakutenMap[currentChar]) {
+    targetField.value = dakutenMap[currentChar];
+  } else if (mark === '゜' && handakutenMap[currentChar]) {
+    targetField.value = handakutenMap[currentChar];
+  }
+}
+
+// Show victory popup
+function showVictory() {
+  const popup = document.getElementById('victorypopup');
+  popup.style.display = 'block';
+  document.getElementById("victorypopupmsg").innerText = `Correct! The answer was「${answer}(${answerKanji})」!`;
+  document.getElementById("background").style.backgroundColor = 'lightgreen';
+  showToast('Congratulations! You won!', 'success', 3000);
+}
+
+// Show game over popup
+function showGameOver() {
+  const popup = document.getElementById('gameoverpop');
+  popup.style.display = 'block';
+  document.getElementById("gameovermsg").innerText = `Game Over! The answer was「${answer}(${answerKanji})」!`;
+  showToast('Game Over! Better luck next time!', 'error', 3000);
+}
+
+// Close popups
+function closePopUp() {
+  document.getElementById("gameoverpop").style.display = 'none';
+  document.getElementById("victorypopup").style.display = 'none';
+  location.reload(); // Reload for new game
+}
+
+// Initialize on load
+async function onLoad() {
+  showToast('Loading word database...', 'info');
+  
+  answer = await getNewAnswer();
+  
+  if (!answer) {
+    showToast('Failed to initialize game', 'error');
+    return;
+  }
+  
+  showToast('Ready to play!', 'success', 2000);
+  
+  // Enable first row only
+  const inputs = document.querySelectorAll('.worrow');
+  inputs.forEach(input => {
+    if (input.id.startsWith('fi')) {
+      input.disabled = false;
+    } else {
+      input.disabled = true;
+    }
+  });
+  
+  // Focus first input
+  document.getElementById('fifif').focus();
+  
+  // Initialize keyboard
+  await createKeyboard();
 }
