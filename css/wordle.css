@@ -185,10 +185,9 @@
     cursor: default;
 }
 
-/* Special kana (ん, を) */
+/* Special kana (ん, を) - NO BOLD */
 .keyboard-key.special-kana {
     background-color: #e3f2fd;
-    font-weight: bold;
 }
 
 .keyboard-key.special-kana:hover {

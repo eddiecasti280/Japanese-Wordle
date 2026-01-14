@@ -458,18 +458,20 @@ async function createKeyboard() {
     ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', '', '']
   ];
   
-  // Additional characters (dakuten, handakuten)
+  // Additional characters (dakuten, handakuten) - TRANSPOSED
+  // Now organized as columns: が行, ざ行, だ行, ば行, ぱ行
+  // Each row represents a vowel sound (a, i, u, e, o)
   const additionalKeys = [
-    // g-row (が行)
-    ['が', 'ぎ', 'ぐ', 'げ', 'ご'],
-    // z-row (ざ行)
-    ['ざ', 'じ', 'ず', 'ぜ', 'ぞ'],
-    // d-row (だ行)
-    ['だ', 'ぢ', 'づ', 'で', 'ど'],
-    // b-row (ば行)
-    ['ば', 'び', 'ぶ', 'べ', 'ぼ'],
-    // p-row (ぱ行)
-    ['ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ']
+    // a-row
+    ['が', 'ざ', 'だ', 'ば', 'ぱ'],
+    // i-row
+    ['ぎ', 'じ', 'ぢ', 'び', 'ぴ'],
+    // u-row
+    ['ぐ', 'ず', 'づ', 'ぶ', 'ぷ'],
+    // e-row
+    ['げ', 'ぜ', 'で', 'べ', 'ぺ'],
+    // o-row
+    ['ご', 'ぞ', 'ど', 'ぼ', 'ぽ']
   ];
   
   // Special keys row
@@ -495,7 +497,7 @@ async function createKeyboard() {
         button.textContent = key;
         button.onclick = () => handleKeyboardInput(key);
         
-        // Special styling for ん and を
+        // Special styling for ん and を (without bold)
         if (key === 'ん' || key === 'を') {
           button.classList.add('special-kana');
         }
