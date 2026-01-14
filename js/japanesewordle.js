@@ -111,6 +111,9 @@ var answer = "";
 var answerKanji = "";
 var wordsDatabase = null;
 var currentRow = 0;
+// Global variable to track pending 'n' conversion
+var pendingNConversion = null;
+
 
 // Toast notification system
 function showToast(message, type = 'info', duration = 3000) {
@@ -179,31 +182,99 @@ async function validateWord(word) {
   return wordsDatabase.words.some(w => w.kana === word);
 }
 
-// Move to next input field
+// Move to next input field with improved romaji handling
 function moveToNext(currentField, nextField) {
   const strr = currentField.value + "";
   currentField.value = currentField.value.trim();
+  
+  // Clear any pending n conversion if user typed something else
+  if (pendingNConversion && pendingNConversion.field === currentField) {
+    clearTimeout(pendingNConversion.timeout);
+    pendingNConversion = null;
+  }
 
-  if (hiraganaArray.includes(strr) && nextField != null) {
-    nextField.focus();
-  } else if (strr.length > 0) {
-    // Check for romaji conversion
-    const japchar = hiraganas.get(strr.toLowerCase());
-    if (japchar != undefined) {
-      currentField.value = japchar;
-      if (nextField != null) {
-        nextField.focus();
-      }
+  // Check if it's already a hiragana character
+  if (hiraganaArray.includes(strr)) {
+    if (nextField != null) {
+      nextField.focus();
+    }
+    return;
+  }
+  
+  // Handle special case for standalone 'n'
+  if (strr === 'n') {
+    // Wait to see if user will type more characters
+    pendingNConversion = {
+      field: currentField,
+      timeout: setTimeout(() => {
+        if (currentField.value === 'n') {
+          currentField.value = 'ん';
+          if (nextField != null) {
+            nextField.focus();
+          }
+        }
+        pendingNConversion = null;
+      }, 500) // Wait 500ms before converting standalone 'n'
+    };
+    return;
+  }
+  
+  // Handle 'nn' immediately
+  if (strr === 'nn') {
+    currentField.value = 'ん';
+    if (nextField != null) {
+      nextField.focus();
+    }
+    return;
+  }
+  
+  // Try to convert romaji to hiragana
+  const japchar = hiraganas.get(strr.toLowerCase());
+  if (japchar !== undefined) {
+    currentField.value = japchar;
+    if (nextField != null) {
+      nextField.focus();
     }
   }
 }
 
-// Handle key down events
+// Updated onKeyDown function to handle the n conversion properly
 function onKeyDown(event, previousField, currentField) {
   const key = event.key;
+  
+  // Handle n conversion on specific keys
+  if (pendingNConversion && pendingNConversion.field === currentField) {
+    if (key === ' ' || key === 'Enter' || key === 'Tab' || key === 'ArrowRight') {
+      // Force conversion of standalone 'n'
+      clearTimeout(pendingNConversion.timeout);
+      if (currentField.value === 'n') {
+        currentField.value = 'ん';
+        pendingNConversion = null;
+        
+        // Move to next field if space or tab was pressed
+        if ((key === ' ' || key === 'Tab') && nextField) {
+          event.preventDefault();
+          const nextField = getNextField(currentField);
+          if (nextField && !nextField.disabled) {
+            nextField.focus();
+          }
+        }
+      }
+    } else if (key.length === 1 && key !== 'n') {
+      // User is typing something after 'n', let the natural flow continue
+      clearTimeout(pendingNConversion.timeout);
+      pendingNConversion = null;
+    }
+  }
 
   if (key === "Backspace" || key === "Delete") {
-    if (previousField != null && currentField.value == "") {
+    // Clear any pending conversion when deleting
+    if (pendingNConversion && pendingNConversion.field === currentField) {
+      clearTimeout(pendingNConversion.timeout);
+      pendingNConversion = null;
+    }
+    
+    if (previousField != null && currentField.value === "") {
       previousField.focus();
       const length = previousField.value.length;
       previousField.setSelectionRange(length, length);
@@ -211,6 +282,15 @@ function onKeyDown(event, previousField, currentField) {
   }
 
   if (answer && key === "Enter") {
+    // Convert any pending 'n' before submitting
+    if (pendingNConversion) {
+      clearTimeout(pendingNConversion.timeout);
+      if (pendingNConversion.field.value === 'n') {
+        pendingNConversion.field.value = 'ん';
+      }
+      pendingNConversion = null;
+    }
+    
     if (currentField.id.endsWith("fof")) {
       processGuess(currentField);
     }
@@ -515,7 +595,7 @@ function closePopUp() {
   location.reload(); // Reload for new game
 }
 
-// Initialize on load
+// Update the onLoad function to include the new listeners
 async function onLoad() {
   showToast('Loading word database...', 'info');
   
@@ -538,9 +618,48 @@ async function onLoad() {
     }
   });
   
+  // Set up input listeners for better romaji handling
+  setupInputListeners();
+  
   // Focus first input
   document.getElementById('fifif').focus();
   
   // Initialize keyboard
   await createKeyboard();
+}
+
+
+// Add an input event listener for better romaji handling
+function setupInputListeners() {
+  const inputs = document.querySelectorAll('.worrow');
+  
+  inputs.forEach(input => {
+    // Add input event listener for better character detection
+    input.addEventListener('input', function(e) {
+      const value = e.target.value.toLowerCase();
+      
+      // Check if we can convert the current value
+      if (value.length >= 2 && value !== 'nn') {
+        const japchar = hiraganas.get(value);
+        if (japchar !== undefined) {
+          e.target.value = japchar;
+          const nextField = getNextField(e.target);
+          if (nextField && !nextField.disabled) {
+            nextField.focus();
+          }
+        }
+      }
+    });
+    
+    // Add blur event to convert standalone 'n' when leaving field
+    input.addEventListener('blur', function(e) {
+      if (e.target.value === 'n') {
+        e.target.value = 'ん';
+        if (pendingNConversion && pendingNConversion.field === e.target) {
+          clearTimeout(pendingNConversion.timeout);
+          pendingNConversion = null;
+        }
+      }
+    });
+  });
 }
