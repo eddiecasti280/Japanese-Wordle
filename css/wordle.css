@@ -303,3 +303,96 @@
 .main-keyboard .keyboard-row .keyboard-key.special-kana:hover {
     background-color: #bbdefb !important;
 }
+
+/* Keyboard key states - matching Wordle colors */
+.keyboard-key.key-correct {
+    background-color: #6aaa64 !important; /* Green */
+    color: white !important;
+    font-weight: bold;
+}
+
+.keyboard-key.key-wrong-position {
+    background-color: #c9b458 !important; /* Yellow */
+    color: white !important;
+    font-weight: bold;
+}
+
+.keyboard-key.key-not-in-word {
+    background-color: #787c7e !important; /* Dark gray */
+    color: white !important;
+    opacity: 0.7;
+}
+
+/* Hover states for used keys */
+.keyboard-key.key-correct:hover {
+    background-color: #5a9454 !important;
+    transform: translateY(-1px); /* Less movement for used keys */
+}
+
+.keyboard-key.key-wrong-position:hover {
+    background-color: #b9a448 !important;
+    transform: translateY(-1px);
+}
+
+.keyboard-key.key-not-in-word:hover {
+    background-color: #686c6e !important;
+    transform: translateY(-1px);
+    cursor: not-allowed; /* Show it's not recommended to use */
+}
+
+/* Animation for key state changes */
+.keyboard-key {
+    transition: all 0.3s ease, background-color 0.5s ease;
+}
+
+/* Visual warning animation when trying to use grayed-out character */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.keyboard-key.key-not-in-word:active {
+    animation: shake 0.3s;
+}
+
+/* Optional: Add a subtle border to make states clearer */
+.keyboard-key.key-correct,
+.keyboard-key.key-wrong-position,
+.keyboard-key.key-not-in-word {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Ensure special keys maintain their appearance */
+.keyboard-key.action-key {
+    background-color: #4CAF50 !important;
+}
+
+.keyboard-key.action-key:hover {
+    background-color: #45a049 !important;
+}
+
+/* Visual feedback in toast for warnings about used characters */
+.toast.warning {
+    background-color: #ff9800;
+    animation: slideInShake 0.3s ease;
+}
+
+@keyframes slideInShake {
+    0% { 
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+    60% { transform: translateX(-48%) translateY(0); }
+    70% { transform: translateX(-52%) translateY(0); }
+    80% { transform: translateX(-48%) translateY(0); }
+    90% { transform: translateX(-52%) translateY(0); }
+    100% { 
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}

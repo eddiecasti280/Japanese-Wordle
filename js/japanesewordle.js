@@ -113,6 +113,8 @@ var wordsDatabase = null;
 var currentRow = 0;
 // Global variable to track pending 'n' conversion
 var pendingNConversion = null;
+// Global variable to track character states
+var characterStates = new Map(); // Maps character to state: 'correct', 'wrong-position', 'not-in-word'
 
 
 // Toast notification system
@@ -328,6 +330,7 @@ function getGroupInputs(className, groupPrefix) {
 }
 
 // Process user guess
+// Modified processGuess function to update keyboard states
 async function processGuess(currentField) {
   const order = ['fi', 'se', 'th', 'fo', 'fv', 'sx', 'sv', 'ei'];
   const groupPrefix = currentField.id.substring(0, 2);
@@ -354,23 +357,30 @@ async function processGuess(currentField) {
   const answerArray = answer.split("");
   const answerStatusArray = getCorrectionStateArray(answerArray, userAnswer);
   
-  // Color the boxes with delay
+  // Color the boxes with delay AND update keyboard
   for (let i = 0; i < answerArray.length; i++) {
     const box = document.getElementById(groupPrefix + ['fi', 'se', 'th', 'fo'][i] + 'f');
     const timeoutDelay = i * 150;
     
     setTimeout(() => {
+      let keyState;
       switch (answerStatusArray[i]) {
         case 1:
           box.style.backgroundColor = 'yellow';
+          keyState = 'wrong-position';
           break;
         case 2:
           box.style.backgroundColor = 'lightgreen';
+          keyState = 'correct';
           break;
         default:
           box.style.backgroundColor = 'lightgray';
+          keyState = 'not-in-word';
           break;
       }
+      
+      // Update keyboard state for this character
+      updateKeyboardState(userAnswer[i], keyState);
     }, timeoutDelay);
   }
   
@@ -589,7 +599,7 @@ async function createKeyboard() {
   keyboardSection.appendChild(container);
 }
 
-// Handle keyboard input
+// Modified handleKeyboardInput to check if character is already used incorrectly
 function handleKeyboardInput(key) {
   // Find the currently active input or first enabled input
   let activeElement = document.activeElement;
@@ -604,7 +614,12 @@ function handleKeyboardInput(key) {
     }
   }
   
-  if (key === '⌫') {
+  // Warn if character is already marked as not-in-word
+  if (characterStates.get(key) === 'not-in-word') {
+    showToast(`'${key}' is not in the word!`, 'warning', 1000);
+  }
+  
+  if (key === '⌫' || key === '削除') {
     // Handle backspace
     if (activeElement.value) {
       activeElement.value = '';
@@ -697,16 +712,20 @@ function showGameOver() {
   showToast('Game Over! Better luck next time!', 'error', 3000);
 }
 
-// Close popups
+// Modified closePopUp to reset keyboard states
 function closePopUp() {
   document.getElementById("gameoverpop").style.display = 'none';
   document.getElementById("victorypopup").style.display = 'none';
+  resetKeyboardStates(); // Reset keyboard colors
   location.reload(); // Reload for new game
 }
 
-// Update the onLoad function to include the new listeners
+// Modified onLoad to reset keyboard states
 async function onLoad() {
   showToast('Loading word database...', 'info');
+  
+  // Reset keyboard states at start
+  resetKeyboardStates();
   
   answer = await getNewAnswer();
   
@@ -726,9 +745,6 @@ async function onLoad() {
       input.disabled = true;
     }
   });
-  
-  // Set up input listeners for better romaji handling
-  setupInputListeners();
   
   // Focus first input
   document.getElementById('fifif').focus();
@@ -770,5 +786,55 @@ function setupInputListeners() {
         }
       }
     });
+  });
+}
+
+// Update keyboard key state based on guess results
+function updateKeyboardState(character, state) {
+  // Only update if the new state is "better" than the existing state
+  // Priority: correct > wrong-position > not-in-word
+  const currentState = characterStates.get(character);
+  
+  if (currentState === 'correct') {
+    return; // Don't override correct state
+  }
+  
+  if (currentState === 'wrong-position' && state === 'not-in-word') {
+    return; // Don't override wrong-position with not-in-word
+  }
+  
+  characterStates.set(character, state);
+  
+  // Update all keyboard buttons with this character
+  const allButtons = document.querySelectorAll('.keyboard-key');
+  allButtons.forEach(button => {
+    if (button.textContent === character) {
+      // Remove all state classes first
+      button.classList.remove('key-correct', 'key-wrong-position', 'key-not-in-word');
+      
+      // Add new state class
+      switch(state) {
+        case 'correct':
+          button.classList.add('key-correct');
+          break;
+        case 'wrong-position':
+          button.classList.add('key-wrong-position');
+          break;
+        case 'not-in-word':
+          button.classList.add('key-not-in-word');
+          break;
+      }
+    }
+  });
+}
+
+// Reset keyboard states (useful for new game)
+function resetKeyboardStates() {
+  characterStates.clear();
+  
+  // Remove all state classes from keyboard
+  const allButtons = document.querySelectorAll('.keyboard-key');
+  allButtons.forEach(button => {
+    button.classList.remove('key-correct', 'key-wrong-position', 'key-not-in-word');
   });
 }
