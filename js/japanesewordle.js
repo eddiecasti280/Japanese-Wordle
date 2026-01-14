@@ -281,7 +281,7 @@ async function processGuess(currentField) {
   const isValidWord = await validateWord(joinedUserAnswer);
   if (!isValidWord) {
     console.warn("Received an invalid answer.");
-    showToast('この単語は単語リストに存在しません！', 'warning', 2000);
+    showToast('Word not in word list!', 'warning', 2000);
     return;
   }
 
@@ -345,11 +345,11 @@ async function processGuess(currentField) {
 
 
 async function onLoad() {
-  showToast('JSONファイルを読み込んでいます...', 'info');
+  showToast('Loading word database...', 'info');
   
   answer = await getNewAnswer();
   
-  showToast('ゲーム準備完了！', 'success', 2000);
+  showToast('Ready to play!', 'success', 2000);
   
   const inputs = document.querySelectorAll('.worrow');
   inputs.forEach(input => {
@@ -555,21 +555,23 @@ async function loadWordsDatabase() {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     wordsDatabase = await response.json();
     console.log(`Loaded ${wordsDatabase.metadata.total_words} words`);
+    showToast(`Loaded ${wordsDatabase.metadata.total_words} words`, 'success', 2000);
     return wordsDatabase;
   } catch (error) {
     console.error('Error loading words database:', error);
-    showToast('単語データベースの読み込みに失敗しました', 'error');
+    showToast('Failed to load word database', 'error');
     return null;
   }
 }
 
 async function getNewAnswer() {
   if (!wordsDatabase) {
+    showToast('Initializing word list...', 'info', 2000);
     await loadWordsDatabase();
   }
   
   if (!wordsDatabase || !wordsDatabase.words.length) {
-    console.error('No words available');
+    showToast('Failed to load words', 'error');
     return null;
   }
   
@@ -584,8 +586,7 @@ async function getNewAnswer() {
   answerKanji = selectedWord.kanji;
   
   console.log(`Answer selected: ${answer} (${answerKanji})`);
-  showToast('新しい単語が選ばれました！', 'success', 1500);
-  
+  showToast('New word selected!', 'success', 1500);
   return answer;
 }
 

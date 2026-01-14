@@ -52,24 +52,27 @@
 
 
     /* Toast notifications */
+/* Updated toast styling in wordle.css */
 .toast {
     position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 20px;  /* Changed from top to bottom */
+    left: 20px;     /* Changed to left corner */
     background-color: #333;
     color: white;
     padding: 12px 24px;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
     z-index: 1000;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    transform: translateY(20px);  /* Slide up animation */
+    transition: all 0.3s ease-in-out;
     font-size: 14px;
+    max-width: 300px;
 }
 
 .toast.show {
     opacity: 1;
+    transform: translateY(0);
 }
 
 .toast.success {
@@ -82,6 +85,10 @@
 
 .toast.warning {
     background-color: #ff9800;
+}
+
+.toast.info {
+    background-color: #2196F3;
 }
 
 /* Hide the old loading status */
