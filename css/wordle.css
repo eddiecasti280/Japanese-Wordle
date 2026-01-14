@@ -50,3 +50,125 @@
         border-radius: 5px;
     }
 
+
+    /* Toast notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    font-size: 14px;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.success {
+    background-color: #4CAF50;
+}
+
+.toast.error {
+    background-color: #f44336;
+}
+
+.toast.warning {
+    background-color: #ff9800;
+}
+
+/* Hide the old loading status */
+#loadingstatus {
+    display: none;
+}
+
+/* Rounded grid styling */
+.wordlebox {
+    width: 50%;
+    max-width: 400px;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px; /* Space between squares */
+    padding: 20px;
+    background-color: transparent;
+}
+
+.worrow {
+    width: 100%;
+    aspect-ratio: 1; /* Makes squares */
+    font-size: 28px;
+    text-align: center;
+    border: 2px solid #d3d3d3;
+    border-radius: 12px; /* Rounded corners */
+    background-color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.worrow:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+.worrow:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* Keyboard styling */
+.keyboard-container {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background-color: #f0f0f0;
+    border-radius: 12px;
+}
+
+.keyboard-row {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.keyboard-key {
+    min-width: 35px;
+    height: 45px;
+    border: none;
+    border-radius: 6px;
+    background-color: white;
+    color: #333;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.keyboard-key:hover {
+    background-color: #e0e0e0;
+    transform: translateY(-2px);
+}
+
+.keyboard-key:active {
+    transform: translateY(0);
+}
+
+.keyboard-key.action-key {
+    min-width: 60px;
+    background-color: #4CAF50;
+    color: white;
+    font-weight: bold;
+}
+
+.keyboard-key.action-key:hover {
+    background-color: #45a049;
+}

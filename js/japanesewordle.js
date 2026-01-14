@@ -223,8 +223,7 @@ async function getNewAnswer() {
   const randomHiragana = hiraganaArray[randomNum];
   console.log(`Selected JSON: json/katakana_data_${randomHiragana}行.json`);
 
-  // update loading status
-  document.getElementById("loadingstatus").innerText = "Initializing word list...";
+  showToast('単語リストを初期化しています...', 'info', 2000);
 
   // fetch the data from the selected JSON file
   data = await fetchData(`json/katakana_data_${randomHiragana}行.json`).then((data) => {
@@ -278,6 +277,13 @@ async function processGuess(currentField) {
       }
     }
   });
+
+  const isValidWord = await validateWord(joinedUserAnswer);
+  if (!isValidWord) {
+    console.warn("Received an invalid answer.");
+    showToast('この単語は単語リストに存在しません！', 'warning', 2000);
+    return;
+  }
 
   if (isInvalidAnswer) {
     console.warn("Recived an invalid answer.")
@@ -339,7 +345,12 @@ async function processGuess(currentField) {
 
 
 async function onLoad() {
+  showToast('JSONファイルを読み込んでいます...', 'info');
+  
   answer = await getNewAnswer();
+  
+  showToast('ゲーム準備完了！', 'success', 2000);
+  
   const inputs = document.querySelectorAll('.worrow');
   inputs.forEach(input => {
     if (input.id.startsWith('fi')) {
@@ -347,9 +358,12 @@ async function onLoad() {
     } else {
       input.disabled = true;
     }
-  })
-  document.getElementsByClassName('.worrow').style = 'transiton: 1000ms all ease-in';
+  });
+  
+  // Initialize keyboard
+  await createKeyboard();
 }
+
 
 function closePopUp() {
   document.getElementById("gameoverpop").style.display = 'none';
@@ -415,16 +429,168 @@ function getCorrectionStateArray(answerList, guessList) {
   return res;
 }
 
-// async function createKeyboards() {
-//   const tableSection = document.getElementById('jp_preview_keyboard');
-//   for (i = 0; i < hiraganaArray.length; i++) {
-//     const id = hiraganaArray[i] + 'key';
-//     tableSection.innerHTML += `<button id="${id}" onclick=typeKey("${id}")>${hiraganaArray[i]}</button>\n`;
-//   }
-// }
+// Add this to japanesewordle.js
+async function createKeyboard() {
+  const keyboardSection = document.getElementById('jp_preview_keyboard');
+  
+  // Define keyboard layout (Japanese style)
+  const keyboardLayout = [
+    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', ''],
+    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', 'を'],
+    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', ''],
+    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'ん'],
+    ['゛', '゜', 'ゃ', 'ゅ', 'ょ', 'っ', 'ー', '削除', 'Enter']
+  ];
+  
+  keyboardSection.innerHTML = '<div class="keyboard-container">';
+  
+  keyboardLayout.forEach((row, rowIndex) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
+    
+    row.forEach(key => {
+      if (key) {
+        const button = document.createElement('button');
+        button.className = 'keyboard-key';
+        button.textContent = key;
+        button.onclick = () => handleKeyboardInput(key);
+        
+        // Special styling for action keys
+        if (key === '削除' || key === 'Enter') {
+          button.classList.add('action-key');
+        }
+        
+        rowDiv.appendChild(button);
+      }
+    });
+    
+    keyboardSection.appendChild(rowDiv);
+  });
+}
 
-// function typeKey(inputID) {
-//   const keyStr = hiraganaArray[i] + 'key';
-//   key = document.getElementById(keyStr);
+function handleKeyboardInput(key) {
+  const activeElement = document.activeElement;
+  
+  if (!activeElement || !activeElement.classList.contains('worrow')) {
+    // Find the first enabled input
+    const enabledInputs = Array.from(document.querySelectorAll('.worrow:not(:disabled)'));
+    if (enabledInputs.length > 0) {
+      enabledInputs[0].focus();
+    }
+    return;
+  }
+  
+  if (key === '削除') {
+    // Handle backspace
+    const event = new KeyboardEvent('keydown', { key: 'Backspace' });
+    activeElement.dispatchEvent(event);
+    if (activeElement.value.length > 0) {
+      activeElement.value = activeElement.value.slice(0, -1);
+    }
+  } else if (key === 'Enter') {
+    // Handle enter
+    const event = new KeyboardEvent('keydown', { key: 'Enter' });
+    activeElement.dispatchEvent(event);
+  } else if (key === '゛' || key === '゜') {
+    // Handle dakuten/handakuten
+    applyDakuten(activeElement, key);
+  } else {
+    // Regular character input
+    activeElement.value = key;
+    const currentField = activeElement;
+    const nextField = getNextField(currentField);
+    moveToNext(currentField, nextField);
+  }
+}
 
-// }
+function applyDakuten(field, mark) {
+  const dakutenMap = {
+    'か': 'が', 'き': 'ぎ', 'く': 'ぐ', 'け': 'げ', 'こ': 'ご',
+    'さ': 'ざ', 'し': 'じ', 'す': 'ず', 'せ': 'ぜ', 'そ': 'ぞ',
+    'た': 'だ', 'ち': 'ぢ', 'つ': 'づ', 'て': 'で', 'と': 'ど',
+    'は': 'ば', 'ひ': 'び', 'ふ': 'ぶ', 'へ': 'べ', 'ほ': 'ぼ'
+  };
+  
+  const handakutenMap = {
+    'は': 'ぱ', 'ひ': 'ぴ', 'ふ': 'ぷ', 'へ': 'ぺ', 'ほ': 'ぽ'
+  };
+  
+  const currentChar = field.value;
+  if (mark === '゛' && dakutenMap[currentChar]) {
+    field.value = dakutenMap[currentChar];
+  } else if (mark === '゜' && handakutenMap[currentChar]) {
+    field.value = handakutenMap[currentChar];
+  }
+}
+function showToast(message, type = 'info', duration = 3000) {
+  // Remove any existing toast
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  // Create new toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Show toast
+  setTimeout(() => toast.classList.add('show'), 10);
+  
+  // Hide and remove toast
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+
+let wordsDatabase = null;
+
+async function loadWordsDatabase() {
+  try {
+    const response = await fetch('words_database.json');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    wordsDatabase = await response.json();
+    console.log(`Loaded ${wordsDatabase.metadata.total_words} words`);
+    return wordsDatabase;
+  } catch (error) {
+    console.error('Error loading words database:', error);
+    showToast('単語データベースの読み込みに失敗しました', 'error');
+    return null;
+  }
+}
+
+async function getNewAnswer() {
+  if (!wordsDatabase) {
+    await loadWordsDatabase();
+  }
+  
+  if (!wordsDatabase || !wordsDatabase.words.length) {
+    console.error('No words available');
+    return null;
+  }
+  
+  // Filter for 4-character words only
+  const fourCharWords = wordsDatabase.words.filter(w => w.kana.length === 4);
+  
+  // Select random word
+  const randomIndex = Math.floor(Math.random() * fourCharWords.length);
+  const selectedWord = fourCharWords[randomIndex];
+  
+  answer = selectedWord.kana;
+  answerKanji = selectedWord.kanji;
+  
+  console.log(`Answer selected: ${answer} (${answerKanji})`);
+  showToast('新しい単語が選ばれました！', 'success', 1500);
+  
+  return answer;
+}
+
+async function validateWord(word) {
+  if (!wordsDatabase) return false;
+  
+  return wordsDatabase.words.some(w => w.kana === word);
+}
