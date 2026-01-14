@@ -133,7 +133,7 @@
 
 /* Enhanced keyboard styling */
 .keyboard-container {
-    max-width: 650px;
+    max-width: 700px;
     margin: 30px auto;
     padding: 20px;
     background-color: #f0f0f0;
@@ -183,6 +183,16 @@
 
 .keyboard-key:disabled {
     cursor: default;
+}
+
+/* Special kana (ん, を) */
+.keyboard-key.special-kana {
+    background-color: #e3f2fd;
+    font-weight: bold;
+}
+
+.keyboard-key.special-kana:hover {
+    background-color: #bbdefb;
 }
 
 /* Action keys (Delete, Enter) */
@@ -254,12 +264,22 @@
     margin-top: 10px;
 }
 
+/* Dakuten rows - centered layout */
+.dakuten-row {
+    justify-content: center;
+}
+
 /* Small keys in dakuten section */
 .keyboard-key.small-key {
     font-size: 16px;
+    background-color: #ffebee;
 }
 
-/* Visual column grouping */
+.keyboard-key.small-key:hover {
+    background-color: #ffcdd2;
+}
+
+/* Visual column grouping for main keyboard */
 .main-keyboard .keyboard-row .keyboard-key:nth-child(1) { background-color: #fff8f8; }  /* あ column */
 .main-keyboard .keyboard-row .keyboard-key:nth-child(2) { background-color: #f8f8ff; }  /* か column */
 .main-keyboard .keyboard-row .keyboard-key:nth-child(3) { background-color: #f8fff8; }  /* さ column */
@@ -271,7 +291,16 @@
 .main-keyboard .keyboard-row .keyboard-key:nth-child(9) { background-color: #f8fef8; }  /* ら column */
 .main-keyboard .keyboard-row .keyboard-key:nth-child(10) { background-color: #fefef8; } /* わ column */
 
+/* Override for special kana to maintain their distinct color */
+.main-keyboard .keyboard-row .keyboard-key.special-kana {
+    background-color: #e3f2fd !important;
+}
+
 /* Hover colors maintain visibility */
 .main-keyboard .keyboard-row .keyboard-key:hover:not(:disabled) {
     background-color: #e8f5e9 !important;
+}
+
+.main-keyboard .keyboard-row .keyboard-key.special-kana:hover {
+    background-color: #bbdefb !important;
 }

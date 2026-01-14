@@ -447,25 +447,29 @@ async function createKeyboard() {
   // Each row represents a vowel sound (a, i, u, e, o)
   const keyboardLayout = [
     // a-row (あ段)
-    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', 'ん'],
     // i-row (い段)
-    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', ''],
+    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', '', 'を'],
     // u-row (う段)
-    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', ''],
+    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', '', ''],
     // e-row (え段)
-    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', ''],
+    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', '', ''],
     // o-row (お段)
-    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を']
+    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', '', '']
   ];
   
-  // Additional characters (dakuten, handakuten, small kana, special)
+  // Additional characters (dakuten, handakuten)
   const additionalKeys = [
-    ['ん', '', '', '', '', '', '', '', '', ''],  // n character
-    ['が', 'ざ', 'だ', 'ば', 'ぱ', '', '', '', '', ''],  // dakuten/handakuten examples
-    ['ぎ', 'じ', 'ぢ', 'び', 'ぴ', '', '', '', '', ''],
-    ['ぐ', 'ず', 'づ', 'ぶ', 'ぷ', '', '', '', '', ''],
-    ['げ', 'ぜ', 'で', 'べ', 'ぺ', '', '', '', '', ''],
-    ['ご', 'ぞ', 'ど', 'ぼ', 'ぽ', '', '', '', '', '']
+    // g-row (が行)
+    ['が', 'ぎ', 'ぐ', 'げ', 'ご'],
+    // z-row (ざ行)
+    ['ざ', 'じ', 'ず', 'ぜ', 'ぞ'],
+    // d-row (だ行)
+    ['だ', 'ぢ', 'づ', 'で', 'ど'],
+    // b-row (ば行)
+    ['ば', 'び', 'ぶ', 'べ', 'ぼ'],
+    // p-row (ぱ行)
+    ['ぱ', 'ぴ', 'ぷ', 'ぺ', 'ぽ']
   ];
   
   // Special keys row
@@ -490,6 +494,11 @@ async function createKeyboard() {
       if (key) {
         button.textContent = key;
         button.onclick = () => handleKeyboardInput(key);
+        
+        // Special styling for ん and を
+        if (key === 'ん' || key === 'を') {
+          button.classList.add('special-kana');
+        }
       } else {
         // Empty space - make it invisible but maintain layout
         button.style.visibility = 'hidden';
@@ -536,19 +545,13 @@ async function createKeyboard() {
   
   additionalKeys.forEach((row) => {
     const rowDiv = document.createElement('div');
-    rowDiv.className = 'keyboard-row';
+    rowDiv.className = 'keyboard-row dakuten-row';
     
     row.forEach((key) => {
       const button = document.createElement('button');
       button.className = 'keyboard-key small-key';
-      
-      if (key) {
-        button.textContent = key;
-        button.onclick = () => handleKeyboardInput(key);
-      } else {
-        button.style.visibility = 'hidden';
-        button.disabled = true;
-      }
+      button.textContent = key;
+      button.onclick = () => handleKeyboardInput(key);
       
       rowDiv.appendChild(button);
     });
