@@ -131,13 +131,20 @@
     cursor: not-allowed;
 }
 
-/* Keyboard styling */
+/* Enhanced keyboard styling */
 .keyboard-container {
-    max-width: 600px;
+    max-width: 650px;
     margin: 30px auto;
     padding: 20px;
     background-color: #f0f0f0;
     border-radius: 12px;
+}
+
+.main-keyboard {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
 }
 
 .keyboard-row {
@@ -148,34 +155,123 @@
 }
 
 .keyboard-key {
-    min-width: 35px;
+    width: 55px;
     height: 45px;
     border: none;
     border-radius: 6px;
     background-color: white;
     color: #333;
-    font-size: 16px;
+    font-size: 18px;
+    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.keyboard-key:hover {
-    background-color: #e0e0e0;
+.keyboard-key:hover:not(:disabled) {
+    background-color: #e8f5e9;
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.keyboard-key:active {
+.keyboard-key:active:not(:disabled) {
     transform: translateY(0);
 }
 
+.keyboard-key:disabled {
+    cursor: default;
+}
+
+/* Action keys (Delete, Enter) */
 .keyboard-key.action-key {
-    min-width: 60px;
+    min-width: 80px;
     background-color: #4CAF50;
     color: white;
     font-weight: bold;
+    font-size: 14px;
 }
 
 .keyboard-key.action-key:hover {
     background-color: #45a049;
+}
+
+/* Small kana keys */
+.keyboard-key.small-kana-key {
+    background-color: #fff3e0;
+}
+
+.keyboard-key.small-kana-key:hover {
+    background-color: #ffe0b2;
+}
+
+/* Dakuten keys */
+.keyboard-key.dakuten-key {
+    background-color: #f3e5f5;
+    min-width: 45px;
+}
+
+.keyboard-key.dakuten-key:hover {
+    background-color: #e1bee7;
+}
+
+/* Special row styling */
+.special-row {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid #ddd;
+}
+
+/* Toggle button */
+.keyboard-toggle {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 0.3s ease;
+}
+
+.keyboard-toggle:hover {
+    background-color: #1976D2;
+}
+
+/* Additional keyboard section */
+.additional-keyboard {
+    margin-top: 10px;
+}
+
+#dakuten-section {
+    background-color: white;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Small keys in dakuten section */
+.keyboard-key.small-key {
+    font-size: 16px;
+}
+
+/* Visual column grouping */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(1) { background-color: #fff8f8; }  /* あ column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(2) { background-color: #f8f8ff; }  /* か column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(3) { background-color: #f8fff8; }  /* さ column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(4) { background-color: #fffff8; }  /* た column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(5) { background-color: #fff8ff; }  /* な column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(6) { background-color: #f8ffff; }  /* は column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(7) { background-color: #fef8f8; }  /* ま column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(8) { background-color: #f8f8fe; }  /* や column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(9) { background-color: #f8fef8; }  /* ら column */
+.main-keyboard .keyboard-row .keyboard-key:nth-child(10) { background-color: #fefef8; } /* わ column */
+
+/* Hover colors maintain visibility */
+.main-keyboard .keyboard-row .keyboard-key:hover:not(:disabled) {
+    background-color: #e8f5e9 !important;
 }

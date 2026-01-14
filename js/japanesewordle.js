@@ -438,45 +438,149 @@ function getCorrectionStateArray(answerList, guessList) {
   return res;
 }
 
-// Create on-screen keyboard
+// Create on-screen keyboard with proper Japanese 50-sound table layout
 async function createKeyboard() {
   const keyboardSection = document.getElementById('jp_preview_keyboard');
   
+  // Proper Japanese 50-sound table layout (gojūon-zu)
+  // Each column represents a consonant group (a, ka, sa, ta, na, ha, ma, ya, ra, wa)
+  // Each row represents a vowel sound (a, i, u, e, o)
   const keyboardLayout = [
+    // a-row (あ段)
     ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+    // i-row (い段)
     ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', '', 'り', ''],
-    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', 'を'],
+    // u-row (う段)
+    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'ゆ', 'る', ''],
+    // e-row (え段)
     ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', '', 'れ', ''],
-    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'ん'],
-    ['゛', '゜', 'ゃ', 'ゅ', 'ょ', 'っ', 'ー', '⌫', 'Enter']
+    // o-row (お段)
+    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'よ', 'ろ', 'を']
   ];
+  
+  // Additional characters (dakuten, handakuten, small kana, special)
+  const additionalKeys = [
+    ['ん', '', '', '', '', '', '', '', '', ''],  // n character
+    ['が', 'ざ', 'だ', 'ば', 'ぱ', '', '', '', '', ''],  // dakuten/handakuten examples
+    ['ぎ', 'じ', 'ぢ', 'び', 'ぴ', '', '', '', '', ''],
+    ['ぐ', 'ず', 'づ', 'ぶ', 'ぷ', '', '', '', '', ''],
+    ['げ', 'ぜ', 'で', 'べ', 'ぺ', '', '', '', '', ''],
+    ['ご', 'ぞ', 'ど', 'ぼ', 'ぽ', '', '', '', '', '']
+  ];
+  
+  // Special keys row
+  const specialKeys = ['ゃ', 'ゅ', 'ょ', 'っ', 'ー', '゛', '゜', '⌫', 'Enter'];
   
   keyboardSection.innerHTML = '';
   const container = document.createElement('div');
   container.className = 'keyboard-container';
   
-  keyboardLayout.forEach((row) => {
+  // Add main keyboard layout
+  const mainKeyboard = document.createElement('div');
+  mainKeyboard.className = 'main-keyboard';
+  
+  keyboardLayout.forEach((row, rowIndex) => {
     const rowDiv = document.createElement('div');
     rowDiv.className = 'keyboard-row';
     
-    row.forEach(key => {
+    row.forEach((key, colIndex) => {
+      const button = document.createElement('button');
+      button.className = 'keyboard-key';
+      
       if (key) {
-        const button = document.createElement('button');
-        button.className = 'keyboard-key';
-        button.textContent = key === '⌫' ? '削除' : key;
+        button.textContent = key;
         button.onclick = () => handleKeyboardInput(key);
-        
-        if (key === '⌫' || key === 'Enter') {
-          button.classList.add('action-key');
-        }
-        
-        rowDiv.appendChild(button);
+      } else {
+        // Empty space - make it invisible but maintain layout
+        button.style.visibility = 'hidden';
+        button.disabled = true;
       }
+      
+      rowDiv.appendChild(button);
     });
     
-    container.appendChild(rowDiv);
+    mainKeyboard.appendChild(rowDiv);
   });
   
+  container.appendChild(mainKeyboard);
+  
+  // Add separator
+  const separator = document.createElement('div');
+  separator.style.height = '10px';
+  container.appendChild(separator);
+  
+  // Add additional characters section with toggle
+  const additionalSection = document.createElement('div');
+  additionalSection.className = 'additional-keyboard';
+  
+  // Toggle button for dakuten/handakuten characters
+  const toggleButton = document.createElement('button');
+  toggleButton.className = 'keyboard-toggle';
+  toggleButton.textContent = '濁点・半濁点を表示 (Show dakuten/handakuten)';
+  toggleButton.onclick = () => {
+    const dakutenSection = document.getElementById('dakuten-section');
+    if (dakutenSection.style.display === 'none') {
+      dakutenSection.style.display = 'block';
+      toggleButton.textContent = '濁点・半濁点を隠す (Hide dakuten/handakuten)';
+    } else {
+      dakutenSection.style.display = 'none';
+      toggleButton.textContent = '濁点・半濁点を表示 (Show dakuten/handakuten)';
+    }
+  };
+  additionalSection.appendChild(toggleButton);
+  
+  // Dakuten/Handakuten section (hidden by default)
+  const dakutenSection = document.createElement('div');
+  dakutenSection.id = 'dakuten-section';
+  dakutenSection.style.display = 'none';
+  
+  additionalKeys.forEach((row) => {
+    const rowDiv = document.createElement('div');
+    rowDiv.className = 'keyboard-row';
+    
+    row.forEach((key) => {
+      const button = document.createElement('button');
+      button.className = 'keyboard-key small-key';
+      
+      if (key) {
+        button.textContent = key;
+        button.onclick = () => handleKeyboardInput(key);
+      } else {
+        button.style.visibility = 'hidden';
+        button.disabled = true;
+      }
+      
+      rowDiv.appendChild(button);
+    });
+    
+    dakutenSection.appendChild(rowDiv);
+  });
+  
+  additionalSection.appendChild(dakutenSection);
+  container.appendChild(additionalSection);
+  
+  // Add special keys row at the bottom
+  const specialRow = document.createElement('div');
+  specialRow.className = 'keyboard-row special-row';
+  
+  specialKeys.forEach(key => {
+    const button = document.createElement('button');
+    button.className = 'keyboard-key';
+    button.textContent = key === '⌫' ? '削除' : key;
+    button.onclick = () => handleKeyboardInput(key);
+    
+    if (key === '⌫' || key === 'Enter') {
+      button.classList.add('action-key');
+    } else if (['ゃ', 'ゅ', 'ょ', 'っ'].includes(key)) {
+      button.classList.add('small-kana-key');
+    } else if (key === '゛' || key === '゜') {
+      button.classList.add('dakuten-key');
+    }
+    
+    specialRow.appendChild(button);
+  });
+  
+  container.appendChild(specialRow);
   keyboardSection.appendChild(container);
 }
 
